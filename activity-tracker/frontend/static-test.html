@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PActivities Static Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .success {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .error { background: #f44336; }
+        .error:hover { background: #da190b; }
+        #results {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            text-align: left;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success">🎉</div>
+        <h1>PActivities Frontend is WORKING!</h1>
+        
+        <div class="info">
+            <strong>✅ Static Web App Deployment Successful</strong><br>
+            Timestamp: <span id="timestamp"></span>
+        </div>
+        
+        <h2>Backend Connectivity Test</h2>
+        <button onclick="testBackend()">Test Backend Health</button>
+        <button onclick="testDatabase()">Test Database</button>
+        
+        <div id="results"></div>
+        
+        <div class="info">
+            <h3>Application URLs</h3>
+            <p>
+                <a href="/" style="color: #FFD700;">🏠 Home</a> |
+                <a href="/test/" style="color: #FFD700;">🧪 Test Page</a> |
+                <a href="/login/" style="color: #FFD700;">🔐 Login</a> |
+                <a href="/setup/" style="color: #FFD700;">⚙️ Setup</a>
+            </p>
+        </div>
+        
+        <div class="info">
+            <h3>Deployment Status</h3>
+            <p>✅ Frontend: Azure Static Web Apps</p>
+            <p>✅ Backend: Azure App Service (Minimal Mode)</p>
+            <p>✅ Database: Azure MySQL (Connected)</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        async function testBackend() {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.innerHTML = '<p>🔄 Testing backend health...</p>';
+            
+            try {
+                const response = await fetch('https://pactivities-backend-abdygcfedtfdavfh.canadacentral-01.azurewebsites.net/health');
+                const data = await response.json();
+                results.innerHTML = `
+                    <h3>✅ Backend Health Check Successful</h3>
+                    <pre style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h3>❌ Backend Health Check Failed</h3>
+                    <p style="color: #ff6b6b;">${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testDatabase() {
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+            results.innerHTML = '<p>🔄 Testing database connection...</p>';
+            
+            try {
+                const response = await fetch('https://pactivities-backend-abdygcfedtfdavfh.canadacentral-01.azurewebsites.net/db-connect');
+                const data = await response.json();
+                const isSuccess = data.status === 'success';
+                results.innerHTML = `
+                    <h3>${isSuccess ? '✅' : '❌'} Database Connection Test</h3>
+                    <pre style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h3>❌ Database Test Failed</h3>
+                    <p style="color: #ff6b6b;">${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+/* Customizable Dashboard Styles */
+
+.customizable-dashboard {
+  @apply w-full;
+}
+
+.customizable-dashboard .react-grid-layout {
+  position: relative;
+}
+
+.customizable-dashboard .react-grid-item {
+  transition: all 200ms ease;
+  transition-property: left, top;
+}
+
+.customizable-dashboard .react-grid-item.cssTransforms {
+  transition-property: transform;
+}
+
+.customizable-dashboard .react-grid-item > .react-resizable-handle {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0;
+  right: 0;
+  background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZG90cyBmaWxsPSIjOTk5IiBkPSJtMTUgMTJjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0wIDRjMCAuNTUyLS40NDggMS0xIDFzLTEtLjQ0OC0xLTEgLjQ0OC0xIDEtMSAxIC40NDggMSAxem0tNS00YzAtLjU1Mi40NDgtMSAxLTFzMSAuNDQ4IDEgMS0uNDQ4IDEtMSAxLTEtLjQ0OC0xLTF6bTAtNGMwLS41NTIuNDQ4LTEgMS0xczEgLjQ0OCAxIDEtLjQ0OCAxLTEgMS0xLS40NDgtMS0xem0wIDhjMC0uNTUyLjQ0OC0xIDEtMXMxIC40NDggMSAxLS40NDggMS0xIDEtMS0uNDQ4LTEtMXptOC00YzAtLjU1Mi40NDgtMSAxLTFzMSAuNDQ4IDEgMS0uNDQ4IDEtMSAxLTEtLjQ0OC0xLTF6bTAtNGMwLS41NTIuNDQ4LTEgMS0xczEgLjQ0OCAxIDEtLjQ0OCAxLTEgMS0xLS40NDgtMS0xem0wIDhjMC0uNTUyLjQ0OC0xIDEtMXMxIC40NDggMSAxLS40NDggMS0xIDEtMS0uNDQ4LTEtMXoiLz4KPHN2Zz4K') no-repeat;
+  background-size: contain;
+  cursor: se-resize;
+  z-index: 10;
+}
+
+.customizable-dashboard .react-grid-item > .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+}
+
+.customizable-dashboard .react-grid-item.react-grid-placeholder {
+  background: rgb(59, 130, 246);
+  opacity: 0.2;
+  transition-duration: 100ms;
+  z-index: 2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  border-radius: 8px;
+}
+
+.customizable-dashboard .react-grid-item.react-draggable-dragging {
+  transition: none;
+  z-index: 3;
+  transform: rotate(5deg);
+}
+
+.customizable-dashboard .react-grid-item.react-resizable-resizing {
+  z-index: 3;
+}
+
+/* Widget Container Styles */
+.widget-container {
+  @apply h-full;
+}
+
+.widget-container .drag-handle {
+  cursor: move;
+}
+
+.widget-container .drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Hover effects for editing mode */
+.customizable-dashboard .react-grid-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation for widget additions */
+@keyframes widget-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.widget-container {
+  animation: widget-appear 0.3s ease-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .customizable-dashboard .react-grid-layout {
+    margin: 0 -8px;
+  }
+  
+  .customizable-dashboard .react-grid-item {
+    margin: 8px;
+  }
+}
+
+/* Dark theme support */
+.customizable-dashboard.dark .react-grid-item.react-grid-placeholder {
+  background: rgb(147, 197, 253);
+}
+
+/* Custom scrollbar for widget content */
+.widget-container ::-webkit-scrollbar {
+  width: 4px;
+}
+
+.widget-container ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.widget-container ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.widget-container ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading states */
+.widget-loading {
+  @apply flex items-center justify-center h-full;
+}
+
+.widget-loading .spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500;
+}
+
+/* Error states */
+.widget-error {
+  @apply flex flex-col items-center justify-center h-full text-gray-500 p-4;
+}
+
+.widget-error .error-icon {
+  @apply w-12 h-12 mb-2 opacity-50;
+}
+
+.widget-error .error-message {
+  @apply text-sm text-center;
+}
+
+/* Empty states */
+.widget-empty {
+  @apply flex flex-col items-center justify-center h-full text-gray-400 p-4;
+}
+
+.widget-empty .empty-icon {
+  @apply w-12 h-12 mb-2 opacity-50;
+}
+
+.widget-empty .empty-message {
+  @apply text-sm text-center;
+}

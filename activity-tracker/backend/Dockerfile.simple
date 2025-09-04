@@ -1,0 +1,22 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package file and install dependencies
+COPY package-minimal.json package.json
+RUN npm install
+
+# Copy the corrected server file
+COPY test-server.js .
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Set ownership
+RUN chown -R nextjs:nodejs /app
+USER nextjs
+
+EXPOSE 3001
+
+CMD ["npm", "start"]

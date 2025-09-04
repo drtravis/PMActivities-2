@@ -1,0 +1,24 @@
+name: activity-tracker
+services:
+  backend:
+    project: ./backend
+    language: node
+    host: containerapp
+    docker:
+      path: ./Dockerfile
+      context: .
+    env:
+      - name: DATABASE_URL
+        secret: true
+      - name: JWT_SECRET
+        secret: true
+      - name: PORT
+        value: "3001"
+
+  frontend:
+    project: ./frontend
+    language: node
+    host: staticwebapp
+    env:
+      - name: NEXT_PUBLIC_API_URL
+        value: "${BACKEND_URI}"

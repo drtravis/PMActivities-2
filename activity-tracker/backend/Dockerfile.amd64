@@ -1,0 +1,28 @@
+FROM --platform=linux/amd64 node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only the required dependencies
+RUN npm install express mysql2 jsonwebtoken bcrypt
+
+# Copy the server file
+COPY test-server.js ./
+
+# Create user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Set ownership
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3001
+
+# Start the server
+CMD ["node", "test-server.js"]

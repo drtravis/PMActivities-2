@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PActivities - Working!</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            max-width: 600px;
+        }
+        h1 {
+            margin: 0 0 1rem 0;
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        .success {
+            color: #4ade80;
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+        .status {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .links {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+        .backend-status {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .status-good { color: #4ade80; }
+        .status-error { color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 PActivities</h1>
+        <div class="success">✅ FRONTEND DEPLOYED SUCCESSFULLY!</div>
+        
+        <div class="status">
+            <h3>🚀 Deployment Status</h3>
+            <p><strong>Frontend:</strong> <span class="status-good">✅ WORKING</span></p>
+            <div class="backend-status" id="backend-status">
+                <p><strong>Backend:</strong> <span id="backend-text">🔄 Testing...</span></p>
+            </div>
+        </div>
+        
+        <div class="links">
+            <a href="/login">🔐 Login</a>
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/admin">⚙️ Admin</a>
+            <a href="/pm">👨‍💼 PM Portal</a>
+            <a href="/member">👤 Member Portal</a>
+        </div>
+        
+        <div style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.8;">
+            <p>Manual deployment successful! 🎉</p>
+            <p>Both frontend and backend are now deployed via Azure Portal.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Test backend connectivity
+        async function testBackend() {
+            try {
+                const response = await fetch('https://pactivities-backend-v2.azurewebsites.net/health');
+                const data = await response.json();
+                
+                document.getElementById('backend-text').innerHTML = '<span class="status-good">✅ CONNECTED</span>';
+                document.getElementById('backend-status').innerHTML += 
+                    `<p style="font-size: 0.8rem; margin-top: 0.5rem;">Version: ${data.version || 'Unknown'}</p>`;
+                
+            } catch (error) {
+                document.getElementById('backend-text').innerHTML = '<span class="status-error">❌ NOT CONNECTED</span>';
+                document.getElementById('backend-status').innerHTML += 
+                    `<p style="font-size: 0.8rem; margin-top: 0.5rem;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Test backend on page load
+        testBackend();
+        
+        // Retry every 10 seconds
+        setInterval(testBackend, 10000);
+    </script>
+</body>
+</html>

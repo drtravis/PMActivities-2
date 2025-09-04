@@ -1,0 +1,57 @@
+{
+  "routes": [
+    {
+      "route": "/test.html",
+      "serve": "/test.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/static-test.html",
+      "serve": "/static-test.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/fallback.html",
+      "serve": "/fallback.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/test.html",
+      "/static-test.html",
+      "/_next/*",
+      "/favicon.ico",
+      "/*.png",
+      "/*.jpg",
+      "/*.jpeg",
+      "/*.gif",
+      "/*.svg",
+      "/*.css",
+      "/*.js"
+    ]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".html": "text/html",
+    ".js": "application/javascript",
+    ".css": "text/css"
+  },
+  "globalHeaders": {
+    "Cache-Control": "no-cache"
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}

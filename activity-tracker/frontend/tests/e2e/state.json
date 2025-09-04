@@ -1,0 +1,22 @@
+{
+  "organizationName": "E2E Org 1756329688359",
+  "admin": {
+    "email": "admin+e2e.1756329688359@test.com",
+    "password": "Password123!"
+  },
+  "project": {
+    "id": "95fad8c2-154a-4343-ab13-c975517e9a4c",
+    "name": "E2E Project 1756329688359"
+  },
+  "pm": {
+    "email": "pm+e2e.1756329688359@test.com",
+    "password": "Password123!",
+    "name": "E2E PM"
+  },
+  "member": {
+    "email": "member+e2e.1756329688359@test.com",
+    "password": "Password123!",
+    "name": "E2E Member"
+  },
+  "apiBase": "http://localhost:3004"
+}
