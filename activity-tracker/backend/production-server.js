@@ -257,32 +257,84 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/auth/create-organization', authenticateToken, async (req, res) => {
+app.post('/api/auth/create-organization', async (req, res) => {
   try {
-    const { name, description = '' } = req.body;
+    const { organizationName, adminEmail, adminName, adminPassword } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ error: 'Organization name is required' });
+    if (!organizationName || !adminEmail || !adminName || !adminPassword) {
+      return res.status(400).json({
+        error: 'Organization name, admin email, admin name, and admin password are required'
+      });
     }
 
     const connection = await dbPool.getConnection();
-    
-    const [orgResult] = await connection.execute(
-      'INSERT INTO organizations (name, description, created_by) VALUES (?, ?, ?)',
-      [name, description, req.user.userId]
-    );
 
-    await connection.execute(
-      'UPDATE users SET organization_id = ? WHERE id = ?',
-      [orgResult.insertId, req.user.userId]
-    );
+    try {
+      // Check if organization already exists
+      const [existingOrg] = await connection.execute(
+        'SELECT id FROM organizations WHERE name = ?',
+        [organizationName]
+      );
 
-    connection.release();
+      if (existingOrg.length > 0) {
+        connection.release();
+        return res.status(400).json({ error: 'Organization with this name already exists' });
+      }
 
-    res.status(201).json({
-      message: 'Organization created successfully',
-      organizationId: orgResult.insertId
-    });
+      // Check if admin user already exists
+      const [existingUser] = await connection.execute(
+        'SELECT id FROM users WHERE email = ?',
+        [adminEmail]
+      );
+
+      if (existingUser.length > 0) {
+        connection.release();
+        return res.status(400).json({ error: 'User with this email already exists' });
+      }
+
+      // Generate UUID for organization
+      const [uuidResult] = await connection.execute('SELECT UUID() as id');
+      const orgId = uuidResult[0].id;
+
+      // Create organization
+      await connection.execute(
+        'INSERT INTO organizations (id, name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())',
+        [orgId, organizationName]
+      );
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+      // Generate UUID for user
+      const [userUuidResult] = await connection.execute('SELECT UUID() as id');
+      const userId = userUuidResult[0].id;
+
+      // Create admin user
+      await connection.execute(
+        'INSERT INTO users (id, email, name, password, role, organization_id, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
+        [userId, adminEmail, adminName, hashedPassword, 'admin', orgId, true]
+      );
+
+      connection.release();
+
+      // Generate JWT token for auto-login
+      const payload = {
+        email: adminEmail,
+        sub: userId,
+        organizationId: orgId,
+        role: 'admin'
+      };
+      const access_token = jwt.sign(payload, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+
+      res.status(201).json({
+        organization: { id: orgId, name: organizationName },
+        user: { id: userId, email: adminEmail, name: adminName, role: 'admin', organizationId: orgId },
+        access_token
+      });
+    } catch (dbError) {
+      connection.release();
+      throw dbError;
+    }
   } catch (error) {
     console.error('Create organization error:', error);
     res.status(500).json({ error: 'Failed to create organization' });
