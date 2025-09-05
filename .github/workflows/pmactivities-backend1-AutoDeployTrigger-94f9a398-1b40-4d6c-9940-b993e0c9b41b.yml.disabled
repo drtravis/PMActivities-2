@@ -1,0 +1,46 @@
+name: Trigger auto deployment for pmactivities-backend1
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/pmactivities-backend1-AutoDeployTrigger-94f9a398-1b40-4d6c-9940-b993e0c9b41b.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.PMACTIVITIESBACKEND1_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.PMACTIVITIESBACKEND1_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.PMACTIVITIESBACKEND1_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/activity-tracker/backend
+          dockerfilePath: activity-tracker/backend/Dockerfile
+          registryUrl: docker.io
+          registryUsername: ${{ secrets.PMACTIVITIESBACKEND1_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.PMACTIVITIESBACKEND1_REGISTRY_PASSWORD }}
+          containerAppName: pmactivities-backend1
+          resourceGroup: DefaultResourceGroup-null
+          imageToBuild: drtravis/pmactivities-backend:${{ github.sha }}
+
+
