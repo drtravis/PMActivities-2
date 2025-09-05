@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { authAPI, usersAPI } from '@/lib/api';
 
 interface User {
   id: string;
@@ -42,18 +43,8 @@ export function UserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/users', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-      
-      const userData = await response.json();
+      // Use the proper API client instead of direct fetch
+      const userData = await usersAPI.getAll();
       
       // Transform backend user data to match frontend interface
       const transformedUsers = userData.map((user: any) => ({
@@ -87,25 +78,12 @@ export function UserManagement() {
 
       const mappedRole = roleMapping[newUser.role] || 'member';
 
-      const response = await fetch('/api/auth/invite', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newUser.name,
-          email: newUser.email,
-          role: mappedRole,
-        }),
+      // Use the proper API client instead of direct fetch
+      const result = await authAPI.inviteUser({
+        name: newUser.name,
+        email: newUser.email,
+        role: mappedRole,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create user');
-      }
-      
-      const result = await response.json();
 
       // Add the new user to the list
       const createdUser: User = {
