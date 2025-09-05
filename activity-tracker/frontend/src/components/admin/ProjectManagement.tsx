@@ -70,11 +70,19 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
 
   const load = async () => {
     try {
+      console.log('🔄 ProjectManagement: Loading projects and users...');
       const [proj, usersData, pwd] = await Promise.all([
         projectsAPI.getAll(),
         usersAPI.getAll(),
         authAPI.getDefaultPassword()
       ]);
+
+      console.log('✅ ProjectManagement: Loaded data:', {
+        projects: proj.length,
+        users: usersData.length,
+        defaultPassword: !!pwd.password
+      });
+
       setProjects(proj.map((p: any) => ({
         id: p.id,
         name: p.name,
@@ -97,8 +105,12 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
         createdAt: u.createdAt,
       })));
       setDefaultPassword(pwd.password);
-    } catch (e) {
-      // ignore for now
+    } catch (error) {
+      console.error('❌ ProjectManagement: Failed to load data:', error);
+      // Set empty arrays so UI doesn't break
+      setProjects([]);
+      setUsers([]);
+      setDefaultPassword('');
     }
   };
 
