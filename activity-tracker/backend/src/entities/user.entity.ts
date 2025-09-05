@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable, Index } from 'typeorm';
 import { Organization } from './organization.entity';
 import { Board } from './board.entity';
 import { Task } from './task.entity';
@@ -34,6 +34,7 @@ export class User {
     enum: UserRole,
     default: UserRole.MEMBER
   })
+  @Index()
   role: UserRole;
 
   @Column({ default: true })
@@ -49,6 +50,7 @@ export class User {
   organization: Organization;
 
   @Column('uuid')
+  @Index()
   organizationId: string;
 
   @OneToMany(() => Activity, activity => activity.createdBy)
@@ -82,7 +84,7 @@ export class User {
   taskHistoryEntries: TaskHistory[];
 
   // User preferences (e.g., member view settings)
-  @Column('jsonb', { nullable: true })
+  @Column('json', { nullable: true })
   preferences: Record<string, any> | null;
 
   @CreateDateColumn()

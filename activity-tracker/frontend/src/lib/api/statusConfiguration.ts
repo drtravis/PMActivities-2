@@ -50,43 +50,43 @@ export const statusConfigurationAPI = {
   // Get all status configurations
   getAll: async (type?: 'activity' | 'task' | 'approval'): Promise<StatusConfig[]> => {
     const params = type ? { type } : {};
-    const response = await api.get('/status-configuration', { params });
+    const response = await api.get('/api/status-configuration', { params });
     return response.data;
   },
 
   // Get active status configurations
   getActive: async (type?: 'activity' | 'task' | 'approval'): Promise<StatusConfig[]> => {
     const params = type ? { type } : {};
-    const response = await api.get('/status-configuration/active', { params });
+    const response = await api.get('/api/status-configuration/active', { params });
     return response.data;
   },
 
   // Get status mapping for frontend use
   getMapping: async (): Promise<StatusMapping> => {
-    const response = await api.get('/status-configuration/mapping');
+    const response = await api.get('/api/status-configuration/mapping');
     return response.data;
   },
 
   // Create new status configuration
   create: async (dto: CreateStatusConfigDto): Promise<StatusConfig> => {
-    const response = await api.post('/status-configuration', dto);
+    const response = await api.post('/api/status-configuration', dto);
     return response.data;
   },
 
   // Update status configuration
   update: async (id: string, dto: UpdateStatusConfigDto): Promise<StatusConfig> => {
-    const response = await api.put(`/status-configuration/${id}`, dto);
+    const response = await api.put(`/api/status-configuration/${id}`, dto);
     return response.data;
   },
 
   // Delete status configuration
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/status-configuration/${id}`);
+    await api.delete(`/api/status-configuration/${id}`);
   },
 
   // Reorder statuses
   reorder: async (type: 'activity' | 'task' | 'approval', statusIds: string[]): Promise<void> => {
-    await api.put(`/status-configuration/reorder/${type}`, { statusIds });
+    await api.put(`/api/status-configuration/reorder/${type}`, { statusIds });
   },
 
   // Initialize default configurations

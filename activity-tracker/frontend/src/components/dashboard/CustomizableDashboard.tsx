@@ -10,6 +10,9 @@ import { StatsWidget } from './widgets/StatsWidget';
 import { TasksWidget } from './widgets/TasksWidget';
 import { QuickActionsWidget } from './widgets/QuickActionsWidget';
 import { NotesWidget } from './widgets/NotesWidget';
+import { ActivityFeedWidget } from './widgets/ActivityFeedWidget';
+import { ProjectOverviewWidget } from './widgets/ProjectOverviewWidget';
+import { ApprovalQueueWidget } from './widgets/ApprovalQueueWidget';
 
 // Import CSS for react-grid-layout
 import 'react-grid-layout/css/styles.css';
@@ -79,12 +82,33 @@ export const CustomizableDashboard: React.FC<CustomizableDashboardProps> = ({ cl
           config: { metrics: ['users', 'projects', 'activities', 'organizations'] }
         },
         {
+          id: 'admin-project-overview',
+          type: 'project-overview',
+          title: 'Project Overview',
+          x: 6, y: 0, w: 6, h: 3,
+          minW: 4, minH: 2
+        },
+        {
+          id: 'admin-approval-queue',
+          type: 'approval-queue',
+          title: 'Approval Queue',
+          x: 0, y: 2, w: 6, h: 3,
+          minW: 4, minH: 2
+        },
+        {
+          id: 'admin-activity-feed',
+          type: 'activity-feed',
+          title: 'Recent Activity',
+          x: 6, y: 3, w: 6, h: 3,
+          minW: 4, minH: 2
+        },
+        {
           id: 'admin-quick-actions',
           type: 'quick-actions',
           title: 'Quick Actions',
-          x: 6, y: 0, w: 6, h: 2,
+          x: 0, y: 5, w: 12, h: 2,
           minW: 4, minH: 1,
-          config: { 
+          config: {
             actions: [
               { label: 'Create User', action: 'create-user', icon: '👤', color: 'blue' },
               { label: 'New Project', action: 'create-project', icon: '📁', color: 'green' },
@@ -107,10 +131,17 @@ export const CustomizableDashboard: React.FC<CustomizableDashboardProps> = ({ cl
           config: { metrics: ['active-tasks', 'team-members', 'pending-approvals', 'completed-activities'] }
         },
         {
-          id: 'pm-tasks',
-          type: 'tasks',
-          title: 'Recent Tasks',
+          id: 'pm-project-overview',
+          type: 'project-overview',
+          title: 'My Projects',
           x: 4, y: 0, w: 4, h: 3,
+          minW: 3, minH: 2
+        },
+        {
+          id: 'pm-approval-queue',
+          type: 'approval-queue',
+          title: 'Pending Approvals',
+          x: 0, y: 2, w: 4, h: 3,
           minW: 3, minH: 2
         },
         {
@@ -181,6 +212,12 @@ export const CustomizableDashboard: React.FC<CustomizableDashboardProps> = ({ cl
         return <QuickActionsWidget {...commonProps} />;
       case 'notes':
         return <NotesWidget {...commonProps} />;
+      case 'activity-feed':
+        return <ActivityFeedWidget {...commonProps} />;
+      case 'project-overview':
+        return <ProjectOverviewWidget {...commonProps} />;
+      case 'approval-queue':
+        return <ApprovalQueueWidget {...commonProps} />;
       default:
         return (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex items-center justify-center">

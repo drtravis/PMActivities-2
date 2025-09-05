@@ -26,7 +26,7 @@ properties:
       - name: NODE_ENV
         value: production
       - name: DB_HOST
-        value: activity-tracker-mysql.mysql.database.azure.com
+        value: pmactivities2-mysql.mysql.database.azure.com
       - name: DB_PORT
         value: "3306"
       - name: DB_USERNAME
@@ -34,20 +34,20 @@ properties:
       - name: DB_PASSWORD
         value: ActivityTracker2024!
       - name: DB_NAME
-        value: activity_tracker
+        value: PMActivity2
       - name: JWT_SECRET
         value: super-secret-jwt-key-for-production-2024
       - name: JWT_EXPIRES_IN
         value: 24h
       - name: CORS_ORIGIN
-        value: https://activity-tracker-frontend.mangoground-80e673e8.canadacentral.azurecontainerapps.io
+        value: https://pmactivities2-frontend.mangoground-80e673e8.canadacentral.azurecontainerapps.io
       command:
       - sh
       - -c
       - |
         apk add --no-cache wget
         cd /app
-        wget -O server.js https://raw.githubusercontent.com/drtravis/PActivities/main/activity-tracker/backend/production-server-complete.js
+        wget -O server.js https://raw.githubusercontent.com/drtravis/PMActivities-2/main/activity-tracker/backend/production-server-complete.js
         npm install express mysql2 jsonwebtoken bcrypt
         node server.js
     scale:

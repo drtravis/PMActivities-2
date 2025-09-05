@@ -4,16 +4,20 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
+  UpdateDateColumn,
   Index,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Task } from './task.entity';
+import { Activity } from './activity.entity';
 
 export enum ApprovalState {
+  DRAFT = 'draft',
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
-  REVOKED = 'revoked',
+  REOPENED = 'reopened',
+  CLOSED = 'closed'
 }
 
 @Entity('approvals')
@@ -21,12 +25,19 @@ export class Approval {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Task)
-  task: Task;
+  @ManyToOne(() => Task, { nullable: true })
+  task?: Task;
 
   @Index()
-  @Column('uuid')
-  taskId: string;
+  @Column('uuid', { nullable: true })
+  taskId?: string;
+
+  @ManyToOne(() => Activity, { nullable: true })
+  activity?: Activity;
+
+  @Index()
+  @Column('uuid', { nullable: true })
+  activityId?: string;
 
   @ManyToOne(() => User)
   approver: User;
@@ -41,35 +52,28 @@ export class Approval {
     default: ApprovalState.PENDING,
   })
   @Index()
-  state: ApprovalState;
+  status: ApprovalState;
 
   @Column('text', { nullable: true })
-  note?: string;
-
-  @Column('text', { nullable: true })
-  rejectionReason?: string;
-
-  // Snapshot of task data at time of approval
-  @Column('jsonb', { nullable: true })
-  taskSnapshot?: Record<string, any>;
+  comments?: string;
 
   @CreateDateColumn()
   @Index()
   createdAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  processedAt?: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   // Helper methods
   isApproved(): boolean {
-    return this.state === ApprovalState.APPROVED;
+    return this.status === ApprovalState.APPROVED;
   }
 
   isRejected(): boolean {
-    return this.state === ApprovalState.REJECTED;
+    return this.status === ApprovalState.REJECTED;
   }
 
   isPending(): boolean {
-    return this.state === ApprovalState.PENDING;
+    return this.status === ApprovalState.PENDING;
   }
 }

@@ -61,7 +61,7 @@ export class TaskCommentsController {
 
     return comments.map(comment => ({
       id: comment.id,
-      body: comment.body,
+      content: comment.content,
       author: {
         id: comment.author.id,
         name: comment.author.name,
@@ -69,11 +69,6 @@ export class TaskCommentsController {
       },
       createdAt: comment.createdAt.toISOString(),
       updatedAt: comment.updatedAt.toISOString(),
-      isEdited: comment.isEdited,
-      lastEditedAt: comment.lastEditedAt?.toISOString(),
-      reactions: comment.reactions,
-      mentions: comment.mentions,
-      isPinned: comment.isPinned,
     }));
   }
 
@@ -81,13 +76,13 @@ export class TaskCommentsController {
   @Post(':taskId/comments')
   async createTaskComment(
     @Param('taskId') taskId: string,
-    @Body() body: { body: string; mentions?: string[] },
+    @Body() body: { content: string },
     @Request() req: any,
   ) {
     const userId = req.user.userId || req.user.id;
 
-    if (!body.body || body.body.trim().length === 0) {
-      throw new BadRequestException('Comment body is required');
+    if (!body.content || body.content.trim().length === 0) {
+      throw new BadRequestException('Comment content is required');
     }
 
     // Verify user has access to this task
@@ -115,15 +110,11 @@ export class TaskCommentsController {
       throw new NotFoundException('User not found');
     }
 
-    // Extract mentions from comment body
-    const mentions = body.mentions || [];
-
     // Create the comment
     const comment = this.commentRepo.create({
       taskId,
       authorId: userId,
-      body: body.body.trim(),
-      mentions,
+      content: body.content.trim(),
     });
 
     const savedComment = await this.commentRepo.save(comment);
@@ -149,7 +140,7 @@ export class TaskCommentsController {
 
     return {
       id: commentWithAuthor.id,
-      body: commentWithAuthor.body,
+      content: commentWithAuthor.content,
       author: {
         id: commentWithAuthor.author.id,
         name: commentWithAuthor.author.name,
@@ -157,10 +148,6 @@ export class TaskCommentsController {
       },
       createdAt: commentWithAuthor.createdAt.toISOString(),
       updatedAt: commentWithAuthor.updatedAt.toISOString(),
-      isEdited: commentWithAuthor.isEdited,
-      reactions: commentWithAuthor.reactions,
-      mentions: commentWithAuthor.mentions,
-      isPinned: commentWithAuthor.isPinned,
     };
   }
 }

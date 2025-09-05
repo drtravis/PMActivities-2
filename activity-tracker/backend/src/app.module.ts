@@ -10,6 +10,7 @@ import { ActivitiesModule } from './activities/activities.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReportsModule } from './reports/reports.module';
 import { AuditModule } from './common/audit.module';
+import { ApprovalModule } from './common/approval.module';
 import { TasksModule } from './tasks/tasks.module';
 import { BoardsModule } from './boards/boards.module';
 import { OrganizationModule } from './organization/organization.module';
@@ -44,7 +45,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
             port: parseInt(configService.get<string>('DB_PORT') || '3306'),
             username: configService.get<string>('DB_USERNAME') || 'travisai',
             password: configService.get<string>('DB_PASSWORD') || 'Haritha#12',
-            database: configService.get<string>('DB_DATABASE') || 'pactivities',
+            database: configService.get<string>('DB_DATABASE') || 'PMActivity2',
             entities: [],
             synchronize: false,
             logging: false,
@@ -62,14 +63,15 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     ProjectsModule,
     UsersModule,
     // Keep other modules disabled for now
-    // AuthModule,
-    // ActivitiesModule,
-    // CommentsModule,
-    // ReportsModule,
-    // TasksModule,
-    // BoardsModule,
-    // AuditModule,
-    // StatusConfigurationModule,
+    AuthModule,
+    ActivitiesModule, // ENABLED: Keep activities for now
+    CommentsModule, // ENABLED: Comments system
+    ReportsModule, // ENABLED: Reports and analytics
+    TasksModule,
+    BoardsModule, // ENABLED: Monday.com-style task boards
+    AuditModule, // ENABLED: Audit logging
+    ApprovalModule, // ENABLED: Approval workflow system
+    StatusConfigurationModule,
   ],
   controllers: [AppController],
   providers: [
@@ -78,19 +80,19 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
-    // Temporarily disable interceptors that might require AuditModule
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: PerformanceInterceptor,
-    // },
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: CacheInterceptor,
-    // },
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: AuditInterceptor,
-    // },
+    // Enable interceptors
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: PerformanceInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
+    },
   ],
 })
 export class AppModule {}

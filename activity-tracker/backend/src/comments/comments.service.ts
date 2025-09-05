@@ -22,7 +22,7 @@ export class CommentsService {
     return;
   }
 
-  async create(activityId: string, body: string, user: User): Promise<Comment> {
+  async create(activityId: string, content: string, user: User): Promise<Comment> {
     // Verify activity exists and user has access
     const activity = await this.activityRepository.findOne({
       where: { id: activityId },
@@ -43,13 +43,13 @@ export class CommentsService {
     }
 
     const comment = this.commentRepository.create({
-      body,
+      content,
       activityId,
       createdById: user.id,
     });
 
     const savedComment = await this.commentRepository.save(comment);
-    await this.logAudit(savedComment.id, AuditAction.CREATE, user.id, { body });
+    await this.logAudit(savedComment.id, AuditAction.CREATE, user.id, { content });
 
     return savedComment;
   }
@@ -81,7 +81,7 @@ export class CommentsService {
     });
   }
 
-  async update(id: string, body: string, user: User): Promise<Comment> {
+  async update(id: string, content: string, user: User): Promise<Comment> {
     const comment = await this.commentRepository.findOne({
       where: { id },
       relations: ['createdBy', 'activity'],
@@ -95,11 +95,11 @@ export class CommentsService {
       throw new ForbiddenException('You can only edit your own comments');
     }
 
-    const oldBody = comment.body;
-    comment.body = body;
+    const oldContent = comment.content;
+    comment.content = content;
 
     const savedComment = await this.commentRepository.save(comment);
-    await this.logAudit(id, AuditAction.UPDATE, user.id, { old: oldBody, new: body });
+    await this.logAudit(id, AuditAction.UPDATE, user.id, { old: oldContent, new: content });
 
     return savedComment;
   }

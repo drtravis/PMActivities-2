@@ -62,22 +62,20 @@ export class Board {
   ownerId: string;
 
   @Column('uuid')
+  @Index()
   organizationId: string;
 
   // JSON schema for custom columns
-  @Column('jsonb', { default: [] })
+  @Column('json', { default: [] })
   customColumns: CustomColumn[];
 
   // Board settings and preferences
-  @Column('jsonb', { default: {} })
+  @Column('json', { default: {} })
   settings: BoardSettings;
 
   // Default board template
   @Column({ default: false })
   isTemplate: boolean;
-
-  @Column({ default: true })
-  isActive: boolean;
 
   @OneToMany(() => Task, task => task.board)
   tasks: Task[];

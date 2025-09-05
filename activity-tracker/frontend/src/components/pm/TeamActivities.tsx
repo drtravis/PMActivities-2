@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { activitiesAPI, boardsAPI, tasksAPI, projectsAPI } from '@/lib/api';
+import { boardsAPI, tasksAPI, projectsAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import TaskToActivityModal from '../member/TaskToActivityModal';
 import { usePersistentState } from '@/hooks/usePersistentState';
@@ -11,7 +11,7 @@ import { StatusPill } from '../ui/StatusPill';
 import { PriorityBadge } from '../ui/PriorityBadge';
 import { UserAvatar } from '../ui/UserAvatar';
 import MyActivitiesRefactored from '../member/MyActivitiesRefactored';
-import { ActivityStatus } from '@/constants/status';
+import { useStatus } from '@/contexts/StatusContext';
 
 interface Activity {
   id: string;
@@ -84,7 +84,7 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
     loadTeamMembers();
   }, [selectedProject, user]);
 
-  // Load activities for the selected member
+  // Load assignments for the selected member
   useEffect(() => {
     const loadActivitiesForMember = async () => {
       if (!selectedProject || !activeTab) return;
@@ -149,8 +149,8 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
 
         setActivities(mapped);
       } catch (error) {
-        console.error('Failed to load activities for member:', error);
-        setError('Failed to load activities');
+        console.error('Failed to load assignments for member:', error);
+        setError('Failed to load assignments');
         setActivities([]);
       } finally {
         setLoading(false);
@@ -161,7 +161,7 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
   }, [selectedProject, activeTab, user]);
 
   const handleRefresh = () => {
-    // Trigger a reload of activities for the current member
+    // Trigger a reload of assignments for the current member
     const loadActivitiesForMember = async () => {
       if (!selectedProject || !activeTab) return;
 
@@ -223,12 +223,12 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
         setActivities(mapped);
         
         // Show success toast
-        setToast({ message: 'Activities refreshed successfully!', type: 'success' });
+        setToast({ message: 'Assignments refreshed successfully!', type: 'success' });
         setTimeout(() => setToast(null), 3000);
       } catch (error) {
-        console.error('Failed to refresh activities:', error);
-        setError('Failed to refresh activities');
-        setToast({ message: 'Failed to refresh activities', type: 'error' });
+        console.error('Failed to refresh assignments:', error);
+        setError('Failed to refresh assignments');
+        setToast({ message: 'Failed to refresh assignments', type: 'error' });
         setTimeout(() => setToast(null), 3000);
       } finally {
         setLoading(false);
@@ -246,20 +246,20 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
   const handleConversionComplete = () => {
     setConvertModalOpen(false);
     setSelectedTaskForConversion(null);
-    handleRefresh(); // Refresh the activities after conversion
+    handleRefresh(); // Refresh the assignments after conversion
   };
 
   if (!selectedProject) {
     return (
       <div className="p-6 text-center">
-        <p className="text-gray-500">Please select a project to view team activities.</p>
+        <p className="text-gray-500">Please select a project to view team assignments.</p>
       </div>
     );
   }
 
   // Create tabs array with self + team members (exclude admin as they are super users)
   const tabs = [
-    { id: 'self', label: 'My Activities', name: user?.name || 'Me' },
+    { id: 'self', label: 'My Assignments', name: user?.name || 'Me' },
     ...teamMembers
       .filter(member => member.id !== user?.id && member.role !== 'admin') // Exclude self and admin users
       .map(member => ({
@@ -315,7 +315,7 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
           <div className="border-t border-gray-300 rounded-b-[26px] bg-white flex-1 flex flex-col min-h-0 w-full">
             <div className="flex items-center justify-between p-8 pb-4 flex-shrink-0 w-full">
               <h2 className="text-lg font-medium text-gray-900">
-                {getCurrentMemberName()}'s Activities
+                {getCurrentMemberName()}'s Assignments
               </h2>
 
               {/* Small Refresh Icon */}
@@ -363,7 +363,7 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
                     <div className="flex items-center justify-center flex-1">
                       <div className="text-center">
                         <span className="text-4xl mb-4 block">📝</span>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No activities found</h3>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No assignments found</h3>
                         <p className="text-gray-500">
                           {getCurrentMemberName()} has no assigned tasks yet
                         </p>
@@ -376,7 +376,7 @@ const TeamActivities = ({ selectedProject }: TeamActivitiesProps) => {
                         <MyActivitiesRefactored
                           viewerMode="pm"
                           assigneeId={activeTab === 'self' ? (user?.id || '') : String(activeTab)}
-                          titleOverride={`${getCurrentMemberName()}'s Activities`}
+                          titleOverride={`${getCurrentMemberName()}'s Assignments`}
                         />
                       </div>
                     </div>

@@ -2,17 +2,28 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import * as express from 'express';
+import * as path from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   try {
-    console.log('Starting PActivities Backend...');
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Port:', process.env.PORT);
-    console.log('Database URL configured:', !!process.env.DATABASE_URL);
+    console.log('🚀 Starting PMActivities2 Backend...');
+    console.log('📊 Environment Details:');
+    console.log('  - NODE_ENV:', process.env.NODE_ENV || 'development');
+    console.log('  - PORT:', process.env.PORT || '3001');
+    console.log('  - Database URL configured:', !!process.env.DATABASE_URL);
+    console.log('  - DB_HOST:', process.env.DB_HOST || 'localhost (default)');
+    console.log('  - DB_NAME:', process.env.DB_NAME || 'PMActivity2 (default)');
+    console.log('  - FRONTEND_URL:', process.env.FRONTEND_URL || 'Not set (using localhost origins)');
+    console.log('  - CORS_ORIGIN:', process.env.CORS_ORIGIN || 'Not set (using localhost origins)');
+    console.log('  - JWT_SECRET:', process.env.JWT_SECRET ? '✅ Set' : '⚠️  Using default (dev only)');
 
     const app = await NestFactory.create(AppModule);
-    console.log('NestJS app created successfully');
+    console.log('✅ NestJS app created successfully');
+
+    // Serve static files from uploads directory
+    app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
   
   // Security middleware
   app.use(helmet({
@@ -51,6 +62,9 @@ async function bootstrap() {
     }));
   }
   
+  // Set global API prefix
+  app.setGlobalPrefix('api');
+
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
@@ -58,18 +72,29 @@ async function bootstrap() {
     disableErrorMessages: process.env.NODE_ENV === 'production',
   }));
   
+  // Enhanced CORS configuration with better debugging
+  const corsOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3003',
+    'http://localhost:3004',
+    'http://localhost:3005',
+    'http://localhost:3006',
+    'http://localhost:3007',
+    process.env.FRONTEND_URL,
+    process.env.CORS_ORIGIN
+  ].filter(Boolean);
+
+  // Split CORS_ORIGIN if it contains multiple URLs
+  if (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.includes(',')) {
+    corsOrigins.push(...process.env.CORS_ORIGIN.split(',').map(url => url.trim()));
+  }
+
+  console.log('🌐 CORS Origins configured:', corsOrigins);
+
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001', 
-      'http://localhost:3002',
-      'http://localhost:3003',
-      'http://localhost:3004',
-      'http://localhost:3005',
-      'http://localhost:3006',
-      'http://localhost:3007',
-      process.env.FRONTEND_URL
-    ].filter(Boolean),
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -82,10 +107,33 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
-  console.log(`Application is running on port ${port}`);
+
+  console.log('🎉 Application started successfully!');
+  console.log(`🌐 Server running on port ${port}`);
+  console.log(`📍 Health check: http://localhost:${port}/health`);
+  console.log(`🔗 API base: http://localhost:${port}/api`);
+
+  // Add health check endpoint
+  try {
+    app.getHttpAdapter().get('/health', (req, res) => {
+      res.json({
+        status: 'ok',
+        message: 'PMActivities Backend is running',
+        version: '2.0.0',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        port: port,
+        corsOrigins: corsOrigins?.length || 0,
+        database: process.env.DB_HOST ? 'configured' : 'not configured'
+      });
+    });
+  } catch (error) {
+    console.warn('⚠️  Could not set up health check endpoint:', error.message);
+  }
 
   } catch (error) {
-    console.error('Failed to start application:', error);
+    console.error('❌ Failed to start application:', error);
+    console.error('Stack trace:', error.stack);
     process.exit(1);
   }
 }

@@ -1,13 +1,14 @@
 {
-  "name": "activity-tracker-frontend",
+  "name": "pmactivities2-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:strict": "node -e \"const p=process.cwd(); if(!p.includes('/Users/ravitadakamalla/Documents/PActivities/activity-tracker/frontend')){console.error('ERROR: Wrong folder. Expected Documents/PActivities/activity-tracker/frontend, got '+p); process.exit(1);} else { console.log('Starting dev from', p); }\" && next dev",
+    "dev:strict": "node -e \"const p=process.cwd(); if(!p.includes('/Users/ravitadakamalla/Documents/PMActivities 2/activity-tracker/frontend')){console.error('ERROR: Wrong folder. Expected Documents/PMActivities 2/activity-tracker/frontend, got '+p); process.exit(1);} else { console.log('Starting dev from', p); }\" && next dev",
     "build": "next build",
     "export": "next build && next export",
-    "start": "next start",
+    "start": "next start -p $PORT",
+    "postinstall": "npm run build",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -15,6 +16,10 @@
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:report": "playwright show-report"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": ">=8.0.0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

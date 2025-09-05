@@ -16,12 +16,25 @@ import {
 } from '../entities';
 import { StatusConfiguration } from '../entities/status-configuration.entity';
 
+// Import centralized configuration
+const { config, validateConfig } = require('../../../../config/app.config.js');
+
 export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOptions => {
+  // Validate centralized configuration
+  try {
+    validateConfig();
+  } catch (error) {
+    console.warn('Configuration validation failed:', error.message);
+  }
+
+  // Use centralized database configuration
+  const dbConfig = config.database;
+
   // Support both MySQL connection URL and individual parameters
   const databaseUrl = configService.get('DATABASE_URL');
 
-  // If no database configuration is provided, return a minimal config that won't try to connect
-  if (!databaseUrl && !configService.get('DB_HOST')) {
+  // If no database configuration is provided, use centralized config defaults
+  if (!databaseUrl && !configService.get('DB_HOST') && !dbConfig.host) {
     console.warn('No database configuration found. Using minimal offline config.');
     return {
       type: 'mysql',
@@ -29,14 +42,13 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
       port: 3306,
       username: 'root',
       password: 'password',
-      database: 'pactivities',
+      database: 'PMActivity2',
       entities: [],
       synchronize: false,
       logging: false,
       retryAttempts: 0,
       retryDelay: 0,
       autoLoadEntities: false,
-      // Don't actually try to connect
       extra: {
         connectionLimit: 0,
       },
@@ -83,14 +95,14 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
     }
   }
 
-  // Fallback to individual parameters for local development
+  // Use centralized configuration with environment variable fallbacks
   return {
-    type: 'mysql',
-    host: configService.get<string>('DB_HOST', 'localhost'),
-    port: parseInt(configService.get<string>('DB_PORT', '3306')),
-    username: configService.get<string>('DB_USERNAME', 'root'),
-    password: configService.get<string>('DB_PASSWORD', 'password'),
-    database: configService.get<string>('DB_DATABASE', 'pactivities'),
+    type: dbConfig.type as any,
+    host: configService.get<string>('DB_HOST', dbConfig.host),
+    port: parseInt(configService.get<string>('DB_PORT') || dbConfig.port.toString()),
+    username: configService.get<string>('DB_USERNAME', dbConfig.username),
+    password: configService.get<string>('DB_PASSWORD', dbConfig.password),
+    database: configService.get<string>('DB_NAME', dbConfig.database),
     entities: [
       Organization,
       User,
@@ -106,8 +118,16 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
       TaskAttachment,
       StatusConfiguration,
     ],
-    synchronize: configService.get('NODE_ENV') !== 'production',
+    synchronize: dbConfig.synchronize,
     dropSchema: configService.get('DB_DROP_SCHEMA') === 'true',
-    logging: configService.get('NODE_ENV') === 'development',
+    logging: dbConfig.logging,
+    ssl: dbConfig.ssl,
+    retryAttempts: 3,
+    retryDelay: 3000,
+    extra: {
+      connectionLimit: 10,
+      acquireTimeout: 60000,
+      timeout: 60000,
+    },
   };
 };

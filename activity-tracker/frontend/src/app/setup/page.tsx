@@ -30,14 +30,18 @@ export default function SetupPage() {
   const onSubmit = async (data: SetupForm) => {
     setIsLoading(true);
     try {
-      await authAPI.createOrganization({
+      const response = await authAPI.createOrganization({
         name: data.organizationName,
         adminEmail: data.adminEmail,
         adminName: data.adminName,
         adminPassword: data.adminPassword,
       });
-      toast.success('Organization created successfully! Please login.');
-      router.push('/login');
+
+      // Organization created successfully with auto-login
+      toast.success('Organization created successfully! Welcome to PMActivities2!');
+
+      // Redirect to dashboard since user is now logged in
+      router.push('/dashboard');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create organization');
     } finally {

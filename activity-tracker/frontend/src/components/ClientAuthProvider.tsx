@@ -9,7 +9,7 @@ export default function ClientAuthProvider({ children }: { children: React.React
   useEffect(() => {
     // Initialize auth from localStorage after hydration
     console.log('ClientAuthProvider: Initializing auth from localStorage');
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('pmactivities2_token');
     const userData = localStorage.getItem('user');
 
     console.log('ClientAuthProvider: Found token:', !!token);
@@ -19,10 +19,27 @@ export default function ClientAuthProvider({ children }: { children: React.React
       try {
         const user = JSON.parse(userData);
         console.log('ClientAuthProvider: Restoring user session:', user);
-        login(token, user);
+
+        // Transform role to match frontend expectations
+        const normalizeRole = (role: string): 'ADMIN' | 'PMO' | 'PROJECT_MANAGER' | 'MEMBER' => {
+          switch (role?.toLowerCase()) {
+            case 'admin': return 'ADMIN';
+            case 'pmo': return 'PMO';
+            case 'project_manager': return 'PROJECT_MANAGER';
+            case 'member': return 'MEMBER';
+            default: return 'MEMBER';
+          }
+        };
+
+        const normalizedUser = {
+          ...user,
+          role: normalizeRole(user.role || 'member')
+        };
+
+        login(token, normalizedUser);
       } catch (error) {
         console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('token');
+        localStorage.removeItem('pmactivities2_token');
         localStorage.removeItem('user');
       }
     }

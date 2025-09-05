@@ -21,15 +21,16 @@ export enum ApprovalState {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
   APPROVED = 'approved',
-  CLOSED = 'closed',
+  REJECTED = 'rejected',
   REOPENED = 'reopened',
-  REJECTED = 'rejected'
+  CLOSED = 'closed'
 }
 
 export enum Priority {
   LOW = 'low',
   MEDIUM = 'medium',
-  HIGH = 'high'
+  HIGH = 'high',
+  URGENT = 'urgent'
 }
 
 @Entity('activities')
@@ -38,6 +39,7 @@ export class Activity {
   id: string;
 
   @Column({ unique: true })
+  @Index()
   ticketNumber: string;
 
   @Column({ length: 200 })
@@ -78,6 +80,7 @@ export class Activity {
   project: Project;
 
   @Column('uuid')
+  @Index()
   projectId: string;
 
   @ManyToOne(() => User, user => user.createdActivities)

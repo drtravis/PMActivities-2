@@ -162,7 +162,7 @@ export class AuthService {
     return await this.userRepository.save(user);
   }
 
-  async createOrganization(organizationName: string, adminEmail: string, adminName: string, adminPassword: string): Promise<{ organization: Organization; user: User }> {
+  async createOrganization(organizationName: string, adminEmail: string, adminName: string, adminPassword: string): Promise<{ organization: Organization; user: User; access_token: string }> {
     // Check if organization already exists
     const existingOrg = await this.organizationRepository.findOne({ where: { name: organizationName } });
     if (existingOrg) {
@@ -195,7 +195,16 @@ export class AuthService {
     // Initialize default status configurations for the new organization
     await this.statusConfigService.initializeDefaults(savedOrganization.id);
 
-    return { organization: savedOrganization, user: savedUser };
+    // Generate JWT token for auto-login
+    const payload = {
+      email: savedUser.email,
+      sub: savedUser.id,
+      organizationId: savedUser.organizationId,
+      role: savedUser.role
+    };
+    const access_token = this.jwtService.sign(payload);
+
+    return { organization: savedOrganization, user: savedUser, access_token };
   }
 
   getDefaultPassword(): string {

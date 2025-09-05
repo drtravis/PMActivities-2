@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { projectsAPI, activitiesAPI, tasksAPI } from '@/lib/api';
+import { projectsAPI, tasksAPI } from '@/lib/api';
 
 interface TeamMember {
   id: string;

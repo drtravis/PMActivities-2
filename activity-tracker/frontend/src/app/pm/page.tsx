@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
-import { activitiesAPI, organizationAPI, projectsAPI, tasksAPI } from '@/lib/api';
+import { organizationAPI, projectsAPI, tasksAPI } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ActivityManagement } from '@/components/pm/ActivityManagement';
 import { GlobalHeader } from '@/components/layout/GlobalHeader';
 import { TeamOverview } from '@/components/pm/TeamOverview';
 import { ApprovalQueue } from '@/components/pm/ApprovalQueue';
@@ -20,16 +19,16 @@ export default function PMDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialize activeTab from URL parameter or default to 'activities'
+  // Initialize activeTab from URL parameter or default to 'team-assignment'
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('tab') || 'activities';
+      return urlParams.get('tab') || 'team-assignment';
     }
-    return 'activities';
+    return 'team-assignment';
   });
 
-  const [counts, setCounts] = useState<{ activities?: number; approvals?: number; team?: number; tasks?: number }>({});
+  const [counts, setCounts] = useState<{ approvals?: number; team?: number; tasks?: number }>({});
   const [hydrating, setHydrating] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -104,17 +103,13 @@ export default function PMDashboard() {
 
   const loadProjectData = async (projectId: string) => {
     try {
-      const [activities, tasks, projectMembers] = await Promise.all([
-        activitiesAPI.getAll({ projectId }),
+      const [tasks, projectMembers] = await Promise.all([
         tasksAPI.getAll({ projectId }),
         projectsAPI.getMembers(projectId),
       ]);
 
-      const submitted = activities.filter((a: any) => a.approvalState === 'submitted');
-
       setCounts({
-        activities: activities.length,
-        approvals: submitted.length,
+        approvals: 0, // No activities to approve anymore
         team: projectMembers?.length || 0,
         tasks: tasks.length,
       });
@@ -147,8 +142,7 @@ export default function PMDashboard() {
   }
 
   const tabs = [
-    { id: 'activities', label: 'Activity Management', icon: '📋', count: counts.activities },
-    { id: 'team-activities', label: 'Team Activities', icon: '👥', count: counts.team },
+    { id: 'team-assignment', label: 'Team Assignments', icon: '👥', count: counts.team },
     { id: 'tasks', label: 'Task Assignment', icon: '🎯' },
     { id: 'approvals', label: 'Approval Queue', icon: '✅', count: counts.approvals },
     { id: 'team', label: 'Team Overview', icon: '👥', count: counts.team },
@@ -214,16 +208,10 @@ export default function PMDashboard() {
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
               <div className="space-y-3">
                 <button
-                  onClick={() => handleTabChange('activities')}
-                  className="w-full inline-flex items-center justify-center px-3 py-2 text-[11px] font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  📋 Manage Activities
-                </button>
-                <button
-                  onClick={() => handleTabChange('team-activities')}
+                  onClick={() => handleTabChange('team-assignment')}
                   className="w-full inline-flex items-center justify-center px-3 py-2 text-[11px] font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                 >
-                  👥 Team Activities
+                  👥 Team Assignments
                 </button>
                 <button
                   data-testid="qa-task-assignment"
@@ -282,10 +270,7 @@ export default function PMDashboard() {
             <div className="bg-white rounded-lg shadow min-h-[600px] flex flex-col transition-all duration-200 ease-in-out">
 
               <div className="flex-1 overflow-hidden">
-              {activeTab === 'activities' && (
-                <ActivityManagement selectedProject={selectedProject} />
-              )}
-              {activeTab === 'team-activities' && (
+              {activeTab === 'team-assignment' && (
                 <div className="p-0">
                   <TeamActivities selectedProject={selectedProject} />
                 </div>

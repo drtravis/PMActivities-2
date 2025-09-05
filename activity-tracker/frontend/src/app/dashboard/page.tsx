@@ -24,7 +24,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('pmactivities2_token');
       const savedUser = localStorage.getItem('user');
       if (token && savedUser) {
         const parsed = JSON.parse(savedUser);
@@ -47,6 +47,10 @@ export default function DashboardPage() {
     // Redirect users to their role-specific dashboards
     if (user?.role === 'ADMIN') {
       router.push('/admin');
+      return;
+    }
+    if (user?.role === 'PMO') {
+      router.push('/pmo');
       return;
     }
     if (user?.role === 'PROJECT_MANAGER') {

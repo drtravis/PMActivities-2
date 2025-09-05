@@ -13,7 +13,7 @@ const dbConfig = {
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'activity_tracker',
+  database: process.env.DB_NAME || 'PMActivity2',
   acquireTimeout: 60000,
   timeout: 60000,
   reconnect: true

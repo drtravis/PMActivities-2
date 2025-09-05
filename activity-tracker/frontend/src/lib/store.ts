@@ -33,26 +33,59 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   login: (token: string, user: User) => {
     console.log('Auth store login called with:', { token, user });
+
+    // Transform role to match frontend expectations
+    const normalizeRole = (role: string): 'ADMIN' | 'PMO' | 'PROJECT_MANAGER' | 'MEMBER' => {
+      switch (role.toLowerCase()) {
+        case 'admin': return 'ADMIN';
+        case 'pmo': return 'PMO';
+        case 'project_manager': return 'PROJECT_MANAGER';
+        case 'member': return 'MEMBER';
+        default: return 'MEMBER';
+      }
+    };
+
+    const normalizedUser = {
+      ...user,
+      role: normalizeRole(user.role)
+    };
+
     if (typeof window !== 'undefined') {
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('pmactivities2_token', token);
+      localStorage.setItem('user', JSON.stringify(normalizedUser));
       console.log('Stored in localStorage');
     }
-    set({ token, user, isAuthenticated: true });
+    set({ token, user: normalizedUser, isAuthenticated: true });
     console.log('Auth state updated');
   },
   logout: () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+      localStorage.removeItem('pmactivities2_token');
       localStorage.removeItem('user');
     }
     set({ token: null, user: null, isAuthenticated: false });
   },
   setUser: (user: User) => {
+    // Transform role to match frontend expectations
+    const normalizeRole = (role: string): 'ADMIN' | 'PMO' | 'PROJECT_MANAGER' | 'MEMBER' => {
+      switch (role.toLowerCase()) {
+        case 'admin': return 'ADMIN';
+        case 'pmo': return 'PMO';
+        case 'project_manager': return 'PROJECT_MANAGER';
+        case 'member': return 'MEMBER';
+        default: return 'MEMBER';
+      }
+    };
+
+    const normalizedUser = {
+      ...user,
+      role: normalizeRole(user.role)
+    };
+
     if (typeof window !== 'undefined') {
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(normalizedUser));
     }
-    set({ user });
+    set({ user: normalizedUser });
   },
 }));
 

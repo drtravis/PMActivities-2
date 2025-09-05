@@ -64,8 +64,6 @@ export class UsersController {
 
   // Preferences endpoints
   @Get(':id/preferences')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER)
   getUserPreferences(@Param('id') id: string, @Request() req) {
     return this.usersService.getUserPreferences(id, req.user);
   }

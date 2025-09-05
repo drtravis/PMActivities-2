@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pmactivities2-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: Jairam123!
+      MYSQL_DATABASE: PMActivity2
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - pmactivities2-network
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pmactivities2-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: app_user
+      PMA_PASSWORD: app_password123
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - pmactivities2-network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  pmactivities2-network:
+    driver: bridge

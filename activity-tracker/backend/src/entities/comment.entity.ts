@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, Index } from 'typeorm';
 
 @Entity('comments')
 export class Comment {
@@ -6,12 +6,13 @@ export class Comment {
   id: string;
 
   @Column('text')
-  body: string;
+  content: string;
 
   @ManyToOne('Activity', 'comments')
   activity: any;
 
   @Column('uuid')
+  @Index()
   activityId: string;
 
   @ManyToOne('User', 'comments')
@@ -21,5 +22,9 @@ export class Comment {
   createdById: string;
 
   @CreateDateColumn()
+  @Index()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

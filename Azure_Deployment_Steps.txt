@@ -207,7 +207,7 @@ curl https://pactivities-backend.azurewebsites.net/health
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://pactivities-backend.azurewebsites.net',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://pmactivities2-backend.azurewebsites.net',
   },
   reactStrictMode: false,
   swcMinify: true,

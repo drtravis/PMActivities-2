@@ -29,14 +29,8 @@ export class AuditService {
         entityId: data.entityId,
         action: data.action,
         userId: data.userId,
-        details: {
-          ...data.details,
-          ipAddress: data.ipAddress,
-          userAgent: data.userAgent,
-          previousValues: data.previousValues,
-          newValues: data.newValues,
-          timestamp: new Date().toISOString(),
-        },
+        oldValues: data.previousValues,
+        newValues: data.newValues,
       } as any);
 
       await this.auditLogRepository.save(auditLog);
@@ -103,7 +97,7 @@ export class AuditService {
     return this.auditLogRepository.find({
       where: { entityType, entityId },
       relations: ['user'],
-      order: { timestamp: 'ASC' },
+      order: { createdAt: 'ASC' },
     });
   }
 
@@ -114,24 +108,23 @@ export class AuditService {
     return this.auditLogRepository.find({
       where: { userId },
       relations: ['user'],
-      order: { timestamp: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
   }
 
   async getSecurityEvents(): Promise<AuditLog[]> {
     const securityActions = [
-      AuditAction.LOGIN,
-      AuditAction.LOGOUT,
-      AuditAction.PASSWORD_CHANGE,
-      AuditAction.ROLE_CHANGE,
-      AuditAction.INVITE_USER,
-      AuditAction.ACCEPT_INVITATION,
+      AuditAction.CREATE,
+      AuditAction.UPDATE,
+      AuditAction.DELETE,
+      AuditAction.APPROVE,
+      AuditAction.REJECT,
     ];
 
     return this.auditLogRepository.find({
       where: { action: { $in: securityActions } as any },
       relations: ['user'],
-      order: { timestamp: 'DESC' },
+      order: { createdAt: 'DESC' },
       take: 100,
     });
   }

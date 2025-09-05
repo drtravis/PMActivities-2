@@ -55,7 +55,7 @@ export function OrganizationSettings() {
       console.log('Fetching organization data...');
 
       // Check if user is authenticated
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('pmactivities2_token') : null;
       const user = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
       console.log('Token exists:', !!token);
       console.log('User exists:', !!user);
@@ -159,8 +159,8 @@ export function OrganizationSettings() {
         const formData = new FormData();
         formData.append('logo', logoFile);
         
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        const response = await fetch('https://activity-tracker-backend.mangoground-80e673e8.canadacentral.azurecontainerapps.io/organization/logo', {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('pmactivities2_token') : null;
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/organization/logo`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -194,7 +194,7 @@ export function OrganizationSettings() {
       // Update the global organization store
       updateOrgStore({
         name: updatedOrg.name,
-        logoUrl: updatedOrg.logo, // Use 'logo' field from backend
+        logoUrl: updatedOrg.logoUrl, // Use 'logoUrl' field from backend
         settings: {
           logoPositionX: updatedOrg.settings?.logoPositionX ?? organization.settings.logoPositionX,
           logoPositionY: updatedOrg.settings?.logoPositionY ?? organization.settings.logoPositionY,
@@ -316,7 +316,7 @@ export function OrganizationSettings() {
             {(logoPreview || organization.logoUrl) ? (
               <div className="relative rounded-md border-2 border-gray-200 overflow-hidden" style={{ width: (organization.settings as any).logoWidth ?? 400, height: (organization.settings as any).logoHeight ?? 100 }}>
                 <img
-                  src={logoPreview || (organization.logoUrl ? `https://activity-tracker-backend.mangoground-80e673e8.canadacentral.azurecontainerapps.io${organization.logoUrl}` : '')}
+                  src={logoPreview || (organization.logoUrl ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization.logoUrl}` : '')}
                   alt="Organization Logo"
                   className="w-full h-full object-cover"
                   style={{

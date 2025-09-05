@@ -110,7 +110,6 @@ export class StatusConfigurationController {
   ) {
     const organizationId = req.user.organizationId;
     const userRole = req.user.role;
-    
     const isValid = await this.statusConfigService.validateTransition(
       organizationId,
       body.type,
@@ -118,7 +117,29 @@ export class StatusConfigurationController {
       body.toStatus,
       userRole
     );
-    
     return { isValid };
   }
+
+  @Post('bulk-update')
+  @Roles(UserRole.ADMIN)
+  async bulkUpdate(
+    @Request() req,
+    @Body() body: { updates: Array<{ id: string; data: UpdateStatusConfigDto }> }
+  ) {
+    const organizationId = req.user.organizationId;
+    const results = await Promise.all(
+      body.updates.map(update =>
+        this.statusConfigService.update(update.id, organizationId, update.data)
+      )
+    );
+    return { message: 'Bulk update completed', results };
+  }
+
+  @Get('usage-stats')
+  @Roles(UserRole.ADMIN, UserRole.PMO)
+  async getUsageStats(@Request() req, @Query('type') type?: StatusType) {
+    const organizationId = req.user.organizationId;
+    return this.statusConfigService.getUsageStats(organizationId, type);
+  }
+
 }

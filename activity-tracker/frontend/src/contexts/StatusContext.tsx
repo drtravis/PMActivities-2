@@ -73,18 +73,79 @@ export function StatusProvider({ children }: StatusProviderProps) {
   const loadStatuses = async () => {
     try {
       setLoading(true);
-      
+      console.log('StatusContext: Loading status configurations...');
+
       // Load all active status configurations
       const configs = await statusConfigurationAPI.getActive();
+      console.log('StatusContext: Loaded configs:', configs);
       setStatusConfigs(configs);
-      
+
       // Load status mapping for quick lookup
       const mapping = await statusConfigurationAPI.getMapping();
+      console.log('StatusContext: Loaded mapping:', mapping);
       setStatusMapping(mapping);
-      
+
     } catch (error) {
       console.error('Failed to load status configurations:', error);
-      toast.error('Failed to load status configurations');
+      console.log('StatusContext: Using fallback default statuses');
+
+      // Fallback to default statuses if API fails
+      const defaultTaskStatuses: StatusConfig[] = [
+        {
+          id: 'default-1',
+          type: 'task',
+          name: 'Not Started',
+          displayName: 'Not Started',
+          color: '#6B7280',
+          order: 1,
+          isDefault: true,
+          isActive: true
+        },
+        {
+          id: 'default-2',
+          type: 'task',
+          name: 'Working on it',
+          displayName: 'Working on it',
+          color: '#3B82F6',
+          order: 2,
+          isDefault: false,
+          isActive: true
+        },
+        {
+          id: 'default-3',
+          type: 'task',
+          name: 'Stuck',
+          displayName: 'Stuck',
+          color: '#EF4444',
+          order: 3,
+          isDefault: false,
+          isActive: true
+        },
+        {
+          id: 'default-4',
+          type: 'task',
+          name: 'Done',
+          displayName: 'Done',
+          color: '#10B981',
+          order: 4,
+          isDefault: false,
+          isActive: true
+        }
+      ];
+
+      console.log('StatusContext: Setting fallback statuses:', defaultTaskStatuses);
+      setStatusConfigs(defaultTaskStatuses);
+      setStatusMapping({
+        task: {
+          'Not Started': { displayName: 'Not Started', color: '#6B7280' },
+          'Working on it': { displayName: 'Working on it', color: '#3B82F6' },
+          'Stuck': { displayName: 'Stuck', color: '#EF4444' },
+          'Done': { displayName: 'Done', color: '#10B981' }
+        },
+        activity: {},
+        approval: {}
+      });
+
     } finally {
       setLoading(false);
     }
@@ -92,7 +153,7 @@ export function StatusProvider({ children }: StatusProviderProps) {
 
   useEffect(() => {
     // Only attempt to load statuses if we have a token to avoid 401 loops on /login
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('pmactivities2_token') : null;
     if (token) {
       loadStatuses();
     } else {
@@ -124,14 +185,17 @@ export function StatusProvider({ children }: StatusProviderProps) {
   };
 
   const getActiveStatusOptions = (type: 'activity' | 'task' | 'approval'): Array<{ value: string; label: string; color: string }> => {
-    return statusConfigs
+    const options = statusConfigs
       .filter(s => s.type === type && s.isActive)
       .sort((a, b) => a.order - b.order)
       .map(s => ({
         value: s.name,
-        label: s.displayName,
+        label: s.displayName || s.name, // Fallback to name if displayName is missing
         color: s.color
       }));
+
+    console.log(`StatusContext: getActiveStatusOptions for ${type}:`, options);
+    return options;
   };
 
   const refreshStatuses = async () => {

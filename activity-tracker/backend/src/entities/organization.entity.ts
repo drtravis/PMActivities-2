@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, Index } from 'typeorm';
 import { User } from './user.entity';
 import { Project } from './project.entity';
 
@@ -29,7 +29,7 @@ export class Organization {
   @Column({ type: 'varchar', nullable: true })
   logoUrl: string | null;
 
-  @Column('jsonb', { nullable: true })
+  @Column('json', { nullable: true })
   settings: Record<string, any>;
 
   @OneToMany(() => User, user => user.organization)

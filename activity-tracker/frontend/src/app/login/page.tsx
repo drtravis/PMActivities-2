@@ -29,8 +29,8 @@ export default function LoginPage() {
       const response = await authAPI.login(data.email, data.password);
       console.log('Login response:', response);
 
-      // Handle token from Express.js backend (returns 'token', not 'access_token')
-      const token = response.token;
+      // Handle token from NestJS backend (returns 'access_token')
+      const token = response.access_token;
       const user = response.user;
       console.log('Token:', token);
       console.log('User:', user);
@@ -52,6 +52,9 @@ export default function LoginPage() {
         switch (role) {
           case 'ADMIN':
             redirectPath = '/admin';
+            break;
+          case 'PMO':
+            redirectPath = '/pmo';
             break;
           case 'PROJECT_MANAGER':
             redirectPath = '/pm';

@@ -8,8 +8,8 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Post()
-  create(@Body() createCommentDto: { activityId: string; body: string }, @Request() req) {
-    return this.commentsService.create(createCommentDto.activityId, createCommentDto.body, req.user);
+  create(@Body() createCommentDto: { activityId: string; content: string }, @Request() req) {
+    return this.commentsService.create(createCommentDto.activityId, createCommentDto.content, req.user);
   }
 
   @Get('activity/:activityId')
@@ -18,8 +18,8 @@ export class CommentsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: { body: string }, @Request() req) {
-    return this.commentsService.update(id, updateCommentDto.body, req.user);
+  update(@Param('id') id: string, @Body() updateCommentDto: { content: string }, @Request() req) {
+    return this.commentsService.update(id, updateCommentDto.content, req.user);
   }
 
   @Delete(':id')

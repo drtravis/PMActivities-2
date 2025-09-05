@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task, TaskPriority, Project, User, Priority, Activity, Board } from '../entities';
 import { UserRole } from '../entities/user.entity';
+import { StatusConfigurationService } from '../status-configuration/status-configuration.service';
+import { StatusType } from '../entities/status-configuration.entity';
 
 @Injectable()
 export class TasksService {
@@ -12,6 +14,7 @@ export class TasksService {
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Activity) private readonly activityRepo: Repository<Activity>,
     @InjectRepository(Board) private readonly boardRepo: Repository<Board>,
+    private readonly statusConfigService: StatusConfigurationService,
   ) {}
 
   private generateTicketNumber(): string {
@@ -98,6 +101,10 @@ export class TasksService {
     // Get or create default board for this project
     const board = await this.getOrCreateDefaultBoard(projectId, currentUser.organizationId, userId);
 
+    // Get default task status from configuration
+    const defaultStatuses = await this.statusConfigService.getActiveByType(currentUser.organizationId, StatusType.TASK);
+    const defaultStatus = defaultStatuses.find(s => s.isSystemDefault()) || defaultStatuses[0];
+
     const task = this.taskRepo.create({
       projectId,
       boardId: board.id,
@@ -106,7 +113,7 @@ export class TasksService {
       assigneeId: userId,
       title: dto.title,
       description: dto.description ?? null,
-      status: 'in_progress',
+      status: defaultStatus?.name || 'to_do',
       priority: dto.priority ?? TaskPriority.MEDIUM,
       dueDate: dto.dueDate ?? null,
     });
@@ -132,6 +139,9 @@ export class TasksService {
   async getMyTasks(currentUser: any, filters: { status?: string; projectId?: string }) {
     const userId = currentUser.userId || currentUser.id;
     const qb = this.taskRepo.createQueryBuilder('t')
+      .leftJoinAndSelect('t.assignee', 'assignee')
+      .leftJoinAndSelect('t.createdBy', 'createdBy')
+      .leftJoinAndSelect('t.project', 'project')
       .where('t.assigneeId = :userId', { userId })
       .orderBy('t.updatedAt', 'DESC');
 
@@ -151,9 +161,17 @@ export class TasksService {
     const task = await this.taskRepo.findOne({ where: { id: taskId } });
     if (!task) throw new NotFoundException('Task not found');
     if (task.assigneeId !== userId) throw new ForbiddenException('Only assignee can start the task');
-    if (task.status !== 'to_do') throw new ForbiddenException('Task is not in To Do state');
 
-    task.status = 'in_progress';
+    // Get valid status configurations for validation
+    const taskStatuses = await this.statusConfigService.getActiveByType(currentUser.organizationId, StatusType.TASK);
+    const todoStatus = taskStatuses.find(s => s.name.toLowerCase().includes('todo') || s.name.toLowerCase().includes('to do'));
+    const inProgressStatus = taskStatuses.find(s => s.name.toLowerCase().includes('progress') || s.name.toLowerCase().includes('working'));
+
+    if (todoStatus && task.status !== todoStatus.name) {
+      throw new ForbiddenException(`Task is not in ${todoStatus.name} state`);
+    }
+
+    task.status = inProgressStatus?.name || 'in_progress';
     const savedTask = await this.taskRepo.save(task);
 
     // Create corresponding Activity so it appears in member's Activities
@@ -180,6 +198,9 @@ export class TasksService {
     }
 
     const qb = this.taskRepo.createQueryBuilder('t')
+      .leftJoinAndSelect('t.assignee', 'assignee')
+      .leftJoinAndSelect('t.createdBy', 'createdBy')
+      .leftJoinAndSelect('t.project', 'project')
       .where('t.organizationId = :orgId', { orgId: currentUser.organizationId });
 
     if (filters?.status) {

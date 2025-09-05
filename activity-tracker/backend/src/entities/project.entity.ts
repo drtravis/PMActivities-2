@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable, Index } from 'typeorm';
 import { User } from './user.entity';
 import { Activity } from './activity.entity';
 import { Organization } from './organization.entity';
@@ -20,12 +20,14 @@ export class Project {
   organization: Organization;
 
   @Column('uuid')
+  @Index()
   organizationId: string;
 
   @ManyToOne(() => User)
   owner: User;
 
   @Column('uuid')
+  @Index()
   ownerId: string;
 
   @ManyToMany(() => User, user => user.projects)

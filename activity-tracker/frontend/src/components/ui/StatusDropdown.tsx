@@ -23,13 +23,26 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const statusOptions = getActiveStatusOptions(type).map(opt => ({
+  let statusOptions = getActiveStatusOptions(type).map(opt => ({
     value: opt.value,
     label: opt.label,
     color: opt.color,
     bgColor: 'bg-gray-50',
     hoverColor: 'hover:bg-gray-100'
   }));
+
+  // Fallback options if no status options are available
+  if (statusOptions.length === 0) {
+    console.log('StatusDropdown: No status options found, using fallback');
+    statusOptions = [
+      { value: 'Not Started', label: 'Not Started', color: '#6B7280', bgColor: 'bg-gray-50', hoverColor: 'hover:bg-gray-100' },
+      { value: 'Working on it', label: 'Working on it', color: '#3B82F6', bgColor: 'bg-gray-50', hoverColor: 'hover:bg-gray-100' },
+      { value: 'Stuck', label: 'Stuck', color: '#EF4444', bgColor: 'bg-gray-50', hoverColor: 'hover:bg-gray-100' },
+      { value: 'Done', label: 'Done', color: '#10B981', bgColor: 'bg-gray-50', hoverColor: 'hover:bg-gray-100' }
+    ];
+  }
+
+  console.log('StatusDropdown: Final statusOptions for', type, ':', statusOptions);
 
   const currentStatus = statusOptions.find(option => option.value === value) || {
     value,
@@ -38,6 +51,8 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
     bgColor: 'bg-gray-50',
     hoverColor: 'hover:bg-gray-100'
   };
+
+  console.log('StatusDropdown: currentStatus:', currentStatus, 'value:', value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

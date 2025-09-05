@@ -19,10 +19,10 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
   useEffect(() => {
     // Fetch organization data from API
     const fetchOrganization = async () => {
-      if (user) {
+      if (user && !organization?.id) {
         try {
-          const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-          const response = await fetch('https://activity-tracker-backend.mangoground-80e673e8.canadacentral.azurecontainerapps.io/organization', {
+          const token = typeof window !== 'undefined' ? localStorage.getItem('pmactivities2_token') : null;
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/organization`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
             setOrganization({
               id: orgData.id,
               name: orgData.name || 'My Organization',
-              logoUrl: orgData.logo,
+              logoUrl: orgData.logoUrl,
               settings: {
                 logoPositionX: orgData.settings?.logoPositionX,
                 logoPositionY: orgData.settings?.logoPositionY,
@@ -57,7 +57,7 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
     };
 
     fetchOrganization();
-  }, [setOrganization, user]);
+  }, [setOrganization, user, organization?.id]);
 
   const handleLogout = () => {
     logout();
@@ -87,8 +87,8 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
                   }}
                 >
                   <img
-                    src={`https://activity-tracker-backend.mangoground-80e673e8.canadacentral.azurecontainerapps.io${organization.logoUrl}`}
-                    alt={organization.name}
+                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization?.logoUrl}`}
+                    alt={organization?.name || 'Organization'}
                     className="w-full h-full object-cover"
                     style={{
                       objectPosition: `${(organization as any)?.settings?.logoPositionX ?? 50}% ${

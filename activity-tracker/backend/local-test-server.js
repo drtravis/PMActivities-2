@@ -12,7 +12,7 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    message: 'PActivities Backend is running locally',
+    message: 'PMActivities2 Backend is running locally',
     version: '2.0.0-local',
     timestamp: new Date().toISOString(),
     environment: 'local-development',
@@ -90,7 +90,7 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 PActivities Backend (Local Test) running on http://localhost:${PORT}`);
+  console.log(`🚀 PMActivities2 Backend (Local Test) running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🔧 Test mode: Database disconnected, using mock data`);
 });

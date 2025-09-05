@@ -69,10 +69,10 @@ export class TaskAttachmentsController {
 
     return attachments.map(attachment => ({
       id: attachment.id,
-      fileName: attachment.fileName,
+      filename: attachment.filename,
+      originalName: attachment.originalName,
       fileSize: attachment.fileSize,
-      fileType: attachment.fileType,
-      description: attachment.description,
+      mimeType: attachment.mimeType,
       downloadUrl: `/api/tasks/${taskId}/attachments/${attachment.id}/download`,
       uploadedBy: {
         id: attachment.uploadedBy.id,
@@ -80,10 +80,6 @@ export class TaskAttachmentsController {
         email: attachment.uploadedBy.email,
       },
       createdAt: attachment.createdAt.toISOString(),
-      downloadCount: attachment.downloadCount,
-      isImage: attachment.isImage(),
-      isDocument: attachment.isDocument(),
-      formattedFileSize: attachment.getFormattedFileSize(),
     }));
   }
 
@@ -161,10 +157,11 @@ export class TaskAttachmentsController {
     const attachment = this.attachmentRepo.create({
       taskId,
       uploadedById: userId,
-      fileName: file.originalname,
+      filename: file.filename,
+      originalName: file.originalname,
       filePath: file.path,
       fileSize: file.size,
-      fileType: file.mimetype,
+      mimeType: file.mimetype,
     });
 
     const savedAttachment = await this.attachmentRepo.save(attachment);
@@ -190,9 +187,10 @@ export class TaskAttachmentsController {
 
     return {
       id: attachmentWithUser.id,
-      fileName: attachmentWithUser.fileName,
+      filename: attachmentWithUser.filename,
+      originalName: attachmentWithUser.originalName,
       fileSize: attachmentWithUser.fileSize,
-      fileType: attachmentWithUser.fileType,
+      mimeType: attachmentWithUser.mimeType,
       downloadUrl: `/api/tasks/${taskId}/attachments/${attachmentWithUser.id}/download`,
       uploadedBy: {
         id: attachmentWithUser.uploadedBy.id,
@@ -200,7 +198,6 @@ export class TaskAttachmentsController {
         email: attachmentWithUser.uploadedBy.email,
       },
       createdAt: attachmentWithUser.createdAt.toISOString(),
-      formattedFileSize: attachmentWithUser.getFormattedFileSize(),
     };
   }
 
@@ -241,20 +238,89 @@ export class TaskAttachmentsController {
       throw new NotFoundException('Attachment not found');
     }
 
-    if (!existsSync(attachment.filePath)) {
+    if (!attachment.filePath || !existsSync(attachment.filePath)) {
       throw new NotFoundException('File not found on disk');
     }
 
-    // Increment download count
-    attachment.incrementDownloadCount();
-    await this.attachmentRepo.save(attachment);
-
     // Stream the file
     const fileStream = createReadStream(attachment.filePath);
-    
-    res.setHeader('Content-Type', attachment.fileType);
-    res.setHeader('Content-Disposition', `attachment; filename="${attachment.fileName}"`);
-    
+
+    res.setHeader('Content-Type', attachment.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${attachment.originalName}"`);
+
     fileStream.pipe(res);
+  }
+
+  // DELETE /tasks/:taskId/attachments/:attachmentId - Delete an attachment
+  @Delete(':taskId/attachments/:attachmentId')
+  async deleteAttachment(
+    @Param('taskId') taskId: string,
+    @Param('attachmentId') attachmentId: string,
+    @Request() req: any,
+  ) {
+    const userId = req.user.userId || req.user.id;
+
+    // Verify user has access to this task
+    const task = await this.taskRepo.findOne({
+      where: { id: taskId },
+      relations: ['project', 'project.members'],
+    });
+
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+
+    // Check if user has access to this task
+    const hasAccess = task.assigneeId === userId ||
+                     task.createdById === userId ||
+                     task.project?.members?.some((member: any) => member.userId === userId);
+
+    if (!hasAccess) {
+      throw new ForbiddenException('Access denied to this task');
+    }
+
+    const attachment = await this.attachmentRepo.findOne({
+      where: { id: attachmentId, taskId },
+      relations: ['uploadedBy'],
+    });
+
+    if (!attachment) {
+      throw new NotFoundException('Attachment not found');
+    }
+
+    // Only the uploader or task owner can delete attachments
+    if (attachment.uploadedById !== userId && task.createdById !== userId) {
+      throw new ForbiddenException('Only the uploader or task owner can delete attachments');
+    }
+
+    // Delete the file from disk
+    if (attachment.filePath && existsSync(attachment.filePath)) {
+      try {
+        unlinkSync(attachment.filePath);
+      } catch (error) {
+        console.error('Error deleting file from disk:', error);
+        // Continue with database deletion even if file deletion fails
+      }
+    }
+
+    // Delete the attachment record
+    await this.attachmentRepo.remove(attachment);
+
+    // Create activity log entry
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (user) {
+      await this.historyRepo.save({
+        taskId,
+        actorId: userId,
+        changeType: ChangeType.UPDATED, // Using UPDATED since FILE_DELETED was removed
+        description: `${user.name} deleted file: ${attachment.originalName}`,
+        fieldChanges: { action: 'file_deleted', filename: attachment.originalName },
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Attachment deleted successfully',
+    };
   }
 }

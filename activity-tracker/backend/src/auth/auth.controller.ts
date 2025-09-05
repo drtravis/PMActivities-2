@@ -71,5 +71,31 @@ export class AuthController {
     await this.authService.changePassword(req.user.id, body.currentPassword, body.newPassword);
     return { message: 'Password changed successfully' };
   }
+
+  @Post('register')
+  async register(@Body() registerDto: {
+    email: string;
+    password: string;
+    name: string;
+    role?: UserRole;
+  }) {
+    // For now, redirect to create-organization since we don't have standalone registration
+    throw new BadRequestException('Registration not available. Please use organization creation instead.');
+  }
+
+  @Post('logout')
+  @UseGuards(AuthGuard('jwt'))
+  async logout(@Request() req) {
+    // Since we're using stateless JWT, logout is handled client-side
+    // This endpoint exists for API consistency
+    return { message: 'Logged out successfully' };
+  }
+
+  @Post('refresh')
+  @UseGuards(AuthGuard('jwt'))
+  async refresh(@Request() req) {
+    // Generate a new token with extended expiry
+    return this.authService.login(req.user);
+  }
 }
 

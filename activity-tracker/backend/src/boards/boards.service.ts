@@ -123,7 +123,7 @@ export class BoardsService {
     const userId = currentUser.userId || currentUser.id;
     
     return this.boardRepo.find({
-      where: { ownerId: userId, isActive: true },
+      where: { ownerId: userId },
       relations: ['project', 'owner'],
       order: { updatedAt: 'DESC' },
     });
@@ -167,9 +167,8 @@ export class BoardsService {
       throw new ForbiddenException('Only board owner or admin can delete board');
     }
 
-    // Soft delete by marking as inactive
-    board.isActive = false;
-    await this.boardRepo.save(board);
+    // Delete the board
+    await this.boardRepo.remove(board);
   }
 
   // Task Operations
@@ -395,10 +394,8 @@ export class BoardsService {
     const approval = this.approvalRepo.create({
       taskId,
       approverId: currentUser.userId || currentUser.id,
-      state: 'approved' as any,
-      note,
-      taskSnapshot: { ...task },
-      processedAt: new Date(),
+      status: 'approved' as any,
+      comments: note,
     });
 
     const savedApproval = await this.approvalRepo.save(approval);
@@ -426,10 +423,8 @@ export class BoardsService {
     const approval = this.approvalRepo.create({
       taskId,
       approverId: currentUser.userId || currentUser.id,
-      state: 'rejected' as any,
-      rejectionReason: reason,
-      taskSnapshot: { ...task },
-      processedAt: new Date(),
+      status: 'rejected' as any,
+      comments: reason,
     });
 
     const savedApproval = await this.approvalRepo.save(approval);

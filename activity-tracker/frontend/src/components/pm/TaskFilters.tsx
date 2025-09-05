@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Task } from '../boards/TaskBoard';
-import { TASK_STATUS_OPTIONS, TASK_PRIORITY_OPTIONS } from '@/constants/task';
+import { useStatus } from '@/contexts/StatusContext';
 
 export interface TaskFilters {
   search?: string;
@@ -27,10 +27,6 @@ interface TaskFiltersProps {
   savedPresets?: Array<{ name: string; filters: TaskFilters }>;
 }
 
-const statusOptions = TASK_STATUS_OPTIONS;
-
-const priorityOptions = TASK_PRIORITY_OPTIONS;
-
 const sectionOptions = [
   { value: 'To-Do', label: 'To-Do' },
   { value: 'Completed', label: 'Completed' },
@@ -48,9 +44,19 @@ export const TaskFilters: React.FC<TaskFiltersProps> = ({
   onSavePreset,
   savedPresets = [],
 }) => {
+  const { getActiveStatusOptions } = useStatus();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showSavePreset, setShowSavePreset] = useState(false);
   const [presetName, setPresetName] = useState('');
+
+  const statusOptions = getActiveStatusOptions('task');
+
+  const priorityOptions = [
+    { value: 'Low', label: 'Low', color: '#00c875' },
+    { value: 'Medium', label: 'Medium', color: '#fdab3d' },
+    { value: 'High', label: 'High', color: '#ff642e' },
+    { value: 'Urgent', label: 'Urgent', color: '#e2445c' }
+  ];
 
   const updateFilter = (key: keyof TaskFilters, value: any) => {
     onFiltersChange({ ...filters, [key]: value });

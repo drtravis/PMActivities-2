@@ -16,7 +16,7 @@ export enum StatusType {
   APPROVAL = 'approval',
 }
 
-@Entity('status_configurations')
+@Entity('status_configuration')
 @Unique(['organizationId', 'type', 'name'])
 @Index(['organizationId', 'type'])
 export class StatusConfiguration {
@@ -37,37 +37,17 @@ export class StatusConfiguration {
   @Index()
   type: StatusType;
 
-  @Column({ length: 50 })
-  name: string; // Internal name (e.g., 'in_progress', 'working_on_it')
-
   @Column({ length: 100 })
-  displayName: string; // User-facing name (e.g., 'In Progress', 'Working on it')
+  name: string; // Status name (e.g., 'To Do', 'In Progress')
 
-  @Column({ length: 7 })
+  @Column({ length: 7, default: '#6B7280' })
   color: string; // Hex color code
 
   @Column({ type: 'int', default: 0 })
-  order: number; // Display order
-
-  @Column({ default: false })
-  isDefault: boolean; // System default status (cannot be deleted)
+  orderIndex: number; // Display order (matches database column name)
 
   @Column({ default: true })
   isActive: boolean; // Whether this status is currently available
-
-  @Column('text', { nullable: true })
-  description: string; // Optional description
-
-  // Workflow configuration (JSON)
-  @Column('jsonb', { nullable: true })
-  workflowRules: {
-    allowedTransitions?: string[]; // Which statuses this can transition to
-    requiredRole?: string[]; // Roles that can set this status
-    autoTransitions?: { // Automatic transitions based on conditions
-      condition: string;
-      targetStatus: string;
-    }[];
-  } | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -76,17 +56,12 @@ export class StatusConfiguration {
   updatedAt: Date;
 
   // Helper methods
-  canTransitionTo(targetStatus: string): boolean {
-    if (!this.workflowRules?.allowedTransitions) {
-      return true; // No restrictions
-    }
-    return this.workflowRules.allowedTransitions.includes(targetStatus);
+  getDisplayName(): string {
+    return this.name; // Use name as display name
   }
 
-  canBeSetByRole(role: string): boolean {
-    if (!this.workflowRules?.requiredRole) {
-      return true; // No role restrictions
-    }
-    return this.workflowRules.requiredRole.includes(role);
+  isSystemDefault(): boolean {
+    // Check if this is a system default status (organizationId is null or default-org)
+    return !this.organizationId || this.organizationId === 'default-org';
   }
 }

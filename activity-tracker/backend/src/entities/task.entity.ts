@@ -2,7 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from './user.entity';
 import { Project } from './project.entity';
 import { Board } from './board.entity';
-import { Priority } from './activity.entity';
 
 // Task status is now dynamic and configurable per organization
 // Status values are stored as strings that reference StatusConfiguration entries
@@ -39,6 +38,11 @@ export class Task {
   @Index()
   @Column('uuid')
   organizationId: string;
+
+  // Optional reference to originating Activity (if task was created from an Activity)
+  @Index()
+  @Column('uuid', { nullable: true })
+  activityId?: string | null;
 
   @ManyToOne(() => User)
   createdBy: User;
@@ -78,7 +82,7 @@ export class Task {
   dueDate?: Date | null;
 
   // Custom column data (JSON)
-  @Column('jsonb', { default: {} })
+  @Column('json', { default: {} })
   customData: Record<string, any>;
 
   // Tags for filtering and organization
@@ -107,10 +111,8 @@ export class Task {
   @Column({ type: 'timestamp', nullable: true })
   approvedAt?: Date;
 
-  // Relationship to original activity (if converted from activity)
-  @Column('uuid', { nullable: true })
-  @Index()
-  activityId?: string;
+  // Enhanced for Monday.com-style workflow
+  // Tasks are now the primary work items
 
   // Relationships for audit and approval
   @OneToMany('Approval', 'task')

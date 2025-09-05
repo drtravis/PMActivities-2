@@ -107,21 +107,39 @@ const PMActivitiesRefactored: React.FC = () => {
         // Get tasks assigned to the selected member
         const memberTasks = await tasksAPI.getByAssignee(selectedMember.id);
 
-        // Transform tasks to activity format - direct unified status mapping
+        // Transform tasks to activity format with proper status mapping
         const statusMap: Record<string, Activity['status']> = {
-          'Not Started': 'Not Started',
-          'Working on it': 'Working on it',
-          'Stuck': 'Stuck',
-          'Blocked': 'Blocked',
+          // Database task statuses to UI status values (from screenshot)
+          'assigned': 'To Do',
+          'In Progress': 'In Progress',
+          'in_progress': 'In Progress',
+          'working_on_it': 'In Progress',
+          'stuck': 'In Review',
+          'blocked': 'In Review',
+          'in_review': 'In Review',
+          'completed': 'Done',
+          'done': 'Done',
+          'cancelled': 'Done',
+          'canceled': 'Done',
+          // Direct mappings (if UI status values are used directly)
+          'To Do': 'To Do',
+          'In Progress': 'In Progress',
+          'In Review': 'In Review',
           'Done': 'Done',
-          'Canceled': 'Canceled',
+          // Legacy fallbacks
+          'Not Started': 'To Do',
+          'Working on it': 'In Progress',
+          'Stuck': 'In Review',
+          'Blocked': 'In Review',
+          'Canceled': 'Done',
+          'Cancelled': 'Done',
         };
 
         const priorityMap: Record<string, Activity['priority']> = {
           Low: 'low',
           Medium: 'medium',
           High: 'high',
-          Urgent: 'high',
+          Urgent: 'urgent',
         };
 
         const getProgressFromTaskStatus = (status: string): number => {
@@ -140,7 +158,7 @@ const PMActivitiesRefactored: React.FC = () => {
           id: t.id,
           title: t.title,
           description: t.description || '',
-          status: statusMap[t.status] || 'draft',
+          status: statusMap[t.status] || 'To Do',
           priority: priorityMap[t.priority] || 'medium',
           category: t.board?.name || t.project?.name || 'Task',
           startDate: t.createdAt || new Date().toISOString(),
@@ -153,8 +171,11 @@ const PMActivitiesRefactored: React.FC = () => {
           attachments: 0,
           lastUpdated: t.updatedAt || new Date().toISOString(),
           taskId: t.id,
+          // Show task creator (who assigned the task) in the "Assigned By" column
           createdBy: t.createdBy || { name: 'Unknown' },
-          updatedBy: t.assignee || { name: selectedMember.name },
+          updatedBy: t.createdBy || { name: 'Unknown' },
+          // Store assignee info for potential future use
+          assignee: t.assignee || { name: selectedMember.name },
           projectId: t.projectId,
           projectName: t.project?.name || 'Unknown Project'
         }));

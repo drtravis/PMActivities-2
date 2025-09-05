@@ -160,9 +160,9 @@ export class UsersService {
 
   // Preferences
   async getUserPreferences(userId: string, currentUser: User) {
-    // Admin/PM can read members in org
-    if (![UserRole.ADMIN, UserRole.PROJECT_MANAGER].includes(currentUser.role)) {
-      throw new ForbiddenException('Only Admin/PM can read preferences of others');
+    // Users can access their own preferences, Admin/PM can read others in org
+    if (currentUser.id !== userId && ![UserRole.ADMIN, UserRole.PROJECT_MANAGER].includes(currentUser.role)) {
+      throw new ForbiddenException('You can only access your own preferences');
     }
     const user = await this.userRepository.findOne({ where: { id: userId, organizationId: currentUser.organizationId } });
     if (!user) throw new NotFoundException('User not found');

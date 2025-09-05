@@ -13,18 +13,22 @@ import { Board } from '../entities/board.entity';
 import { TaskComment } from '../entities/task-comment.entity';
 import { TaskAttachment } from '../entities/task-attachment.entity';
 import { TaskHistory } from '../entities/task-history.entity';
+import { StatusConfigurationModule } from '../status-configuration/status-configuration.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    Task,
-    Project,
-    User,
-    Activity,
-    Board,
-    TaskComment,
-    TaskAttachment,
-    TaskHistory
-  ])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Task,
+      Project,
+      User,
+      Activity,
+      Board,
+      TaskComment,
+      TaskAttachment,
+      TaskHistory
+    ]),
+    StatusConfigurationModule
+  ],
   controllers: [
     TasksController,
     TaskCommentsController,

@@ -170,11 +170,11 @@ const SortableTableRow: React.FC<SortableTableRowProps> = ({
         </div>
       </div>
 
-      {/* Assigned To */}
+      {/* Assigned By */}
       <div className="flex items-center space-x-1 px-1.5 border-r border-gray-200">
         <UserAvatar name={activity.createdBy?.name || 'U'} size="xs" className="flex-shrink-0" />
         <span className="text-xs text-gray-900 truncate flex-1">
-          {activity.createdBy?.name || 'Unassigned'}
+          {activity.createdBy?.name || 'Unknown'}
         </span>
       </div>
 
@@ -335,7 +335,9 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
           ? await tasksAPI.getAll({ assigneeId })
           : await tasksAPI.getMy();
 
-        // Transform tasks to activity format (direct unified status mapping)
+        console.log('Loaded tasks:', tasks);
+
+        // Transform tasks to activity format with proper status mapping
         const priorityMap: Record<string, Activity['priority']> = {
           Low: 'low',
           Medium: 'medium',
@@ -343,28 +345,69 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
           Urgent: 'urgent',
         };
 
-        const mapped: Activity[] = (tasks || []).map((t: any) => ({
-          id: t.id,
-          title: t.title,
-          description: t.description || '',
-          status: t.status || 'Not Started', // Direct unified status - no mapping needed
-          priority: priorityMap[t.priority] || 'medium',
-          category: t.board?.name || t.project?.name || (assigneeId ? 'Assigned Tasks' : 'Assigned to me'),
-          startDate: t.createdAt || new Date().toISOString(),
-          endDate: t.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          progress: getProgressFromTaskStatus(t.status),
-          estimatedHours: 8,
-          actualHours: Math.floor(Math.random() * 8),
-          tags: t.tags || [],
-          comments: 0,
-          attachments: 0,
-          lastUpdated: t.updatedAt || new Date().toISOString(),
-          taskId: t.id,
-          createdBy: t.assignee || t.createdBy || { name: 'Unassigned' },
-          updatedBy: t.assignee || t.createdBy || { name: 'Unassigned' },
-          projectId: t.projectId,
-          projectName: t.project?.name || 'Unknown Project'
-        }));
+        // Map database task statuses to UI status values (from screenshot)
+        const statusMap: Record<string, string> = {
+          // Database task statuses to UI status values
+          'assigned': 'To Do',
+          'In Progress': 'In Progress',
+          'in_progress': 'In Progress',
+          'working_on_it': 'In Progress',
+          'stuck': 'In Review',
+          'blocked': 'In Review',
+          'in_review': 'In Review',
+          'completed': 'Done',
+          'done': 'Done',
+          'cancelled': 'Done', // Treat cancelled as done for grouping
+          'canceled': 'Done',
+          // Direct mappings (if UI status values are used directly)
+          'To Do': 'To Do',
+          'In Progress': 'In Progress',
+          'In Review': 'In Review',
+          'Done': 'Done',
+          // Legacy fallbacks
+          'Not Started': 'To Do',
+          'Working on it': 'In Progress',
+          'Stuck': 'In Review',
+          'Cancelled': 'Done'
+        };
+
+        const mapped: Activity[] = (tasks || []).map((t: any) => {
+          // Fallback creator info if not provided by backend
+          const createdBy = t.createdBy || t.creator || {
+            id: 'unknown',
+            name: 'System User',
+            email: 'system@example.com'
+          };
+
+          const mappedStatus = statusMap[t.status] || 'To Do';
+          const mappedPriority = priorityMap[t.priority] || 'medium';
+
+          return {
+            id: t.id,
+            title: t.title,
+            description: t.description || '',
+            status: mappedStatus, // Map database status to context status
+            priority: mappedPriority,
+            category: t.board?.name || t.project?.name || (assigneeId ? 'Assigned Tasks' : 'Assigned to me'),
+            startDate: t.createdAt || new Date().toISOString(),
+            endDate: t.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            progress: getProgressFromTaskStatus(t.status),
+            estimatedHours: 8,
+            actualHours: Math.floor(Math.random() * 8),
+            tags: t.tags || [],
+            comments: 0,
+            attachments: 0,
+            lastUpdated: t.updatedAt || new Date().toISOString(),
+            taskId: t.id,
+            // Show task creator (who assigned the task) in the "Assigned By" column
+            createdBy: createdBy,
+            updatedBy: createdBy,
+            // Store assignee info for potential future use
+            assignee: t.assignee || { name: 'Unassigned' },
+            projectId: t.projectId,
+            projectName: t.project?.name || 'Unknown Project'
+          };
+        });
 
         setActivities(mapped);
         setError(null); // Clear any previous errors on successful load
@@ -479,6 +522,8 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
   };
 
   const handleStatusChange = async (activityId: string, newStatus: Activity['status']) => {
+    console.log('Status change requested:', { activityId, newStatus });
+
     // Optimistic UI update
     const prevActivities = activities;
     setActivities(prev => prev.map(a => a.id === activityId ? { ...a, status: newStatus } : a));
@@ -486,18 +531,27 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
     // Find taskId for this activity
     const activity = prevActivities.find(a => a.id === activityId);
     const taskId = activity?.taskId;
-    if (!taskId) return; // Nothing to persist
+
+    if (!taskId) {
+      console.error('No taskId found for activity:', activityId);
+      setToast({ message: 'Task ID not found. Cannot update status.', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
 
     // Direct status update - no mapping needed since both use unified status system
     try {
+      console.log('Updating task status:', { taskId, newStatus });
       await tasksAPI.updateStatus(taskId, newStatus);
-      setToast({ message: 'Status updated', type: 'success' });
+      console.log('Status updated successfully');
+      setToast({ message: 'Status updated successfully', type: 'success' });
       setTimeout(() => setToast(null), 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update task status:', err);
       // Revert UI on failure
       setActivities(prevActivities);
-      setToast({ message: 'Failed to update status. Please try again.', type: 'error' });
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to update status. Please try again.';
+      setToast({ message: errorMessage, type: 'error' });
       setTimeout(() => setToast(null), 3000);
     }
   };
@@ -616,23 +670,22 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
   // Grouping logic - group by actual task status and priority
   const groupActivities = (activities: Activity[]) => {
     if (groupBy === 'status') {
-      // Build groups dynamically from active task statuses in configured order
-      const statusOrder = taskStatuses.map(s => s.name);
+      // Use status order that matches the UI dropdown (from screenshot)
+      const statusOrder = ['To Do', 'In Progress', 'In Review', 'Done'];
       const groups: Record<string, Activity[]> = {};
 
       statusOrder.forEach((statusName) => {
-        const label = getStatusDisplayName(statusName, 'task');
-        const groupActivities = activities.filter(a => a.status === statusName || getStatusDisplayName(a.status, 'task') === label);
+        const groupActivities = activities.filter(a => a.status === statusName);
         // Only add groups that have at least one activity
         if (groupActivities.length > 0) {
-          groups[label] = groupActivities;
+          groups[statusName] = groupActivities;
         }
       });
 
       // Include any activities with unknown status in an "Other" group
-      const knownNames = new Set(statusOrder);
-      const others = activities.filter(a => !knownNames.has(a.status));
-      if (others.length) {
+      const knownStatuses = new Set(statusOrder);
+      const others = activities.filter(a => !knownStatuses.has(a.status));
+      if (others.length > 0) {
         groups['Other'] = others;
       }
 
@@ -641,16 +694,16 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
       const groups: Record<string, Activity[]> = {};
 
       // Only add priority groups that have at least one activity
-      const urgentActivities = activities.filter(a => a.priority === 'urgent');
+      const urgentActivities = activities.filter(a => a.priority === 'urgent' || a.priority === 'Urgent');
       if (urgentActivities.length > 0) groups['Urgent'] = urgentActivities;
 
-      const highActivities = activities.filter(a => a.priority === 'high');
+      const highActivities = activities.filter(a => a.priority === 'high' || a.priority === 'High');
       if (highActivities.length > 0) groups['High'] = highActivities;
 
-      const mediumActivities = activities.filter(a => a.priority === 'medium');
+      const mediumActivities = activities.filter(a => a.priority === 'medium' || a.priority === 'Medium');
       if (mediumActivities.length > 0) groups['Medium'] = mediumActivities;
 
-      const lowActivities = activities.filter(a => a.priority === 'low');
+      const lowActivities = activities.filter(a => a.priority === 'low' || a.priority === 'Low');
       if (lowActivities.length > 0) groups['Low'] = lowActivities;
 
       const blankActivities = activities.filter(a => !a.priority || a.priority === null || a.priority === undefined);
@@ -696,7 +749,7 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
   // Table columns configuration
   const columns = [
     { key: 'task', label: 'Task', width: 'col-span-3', sortable: true },
-    { key: 'owner', label: 'Assigned To', width: 'col-span-2' },
+    { key: 'owner', label: 'Assigned By', width: 'col-span-2' },
     { key: 'status', label: 'Status', width: 'col-span-2' },
     { key: 'dueDate', label: 'Due date', width: 'col-span-1' },
     { key: 'priority', label: 'Priority', width: 'col-span-2' },
@@ -767,7 +820,7 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
               >
                 <div className="px-1 text-center"></div>
                 <div className="px-2">Task</div>
-                <div className="px-2 text-center">Assigned To</div>
+                <div className="px-2 text-center">Assigned By</div>
                 <div className="px-2 text-center">Status</div>
                 <div className="px-2 text-center">Due date</div>
                 <div className="px-2 text-center">Priority</div>
@@ -835,7 +888,7 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
                   >
                     <div className="px-1 text-center"></div>
                     <div className="px-1.5">Task</div>
-                    <div className="px-1.5 text-center">Assigned To</div>
+                    <div className="px-1.5 text-center">Assigned By</div>
                     <div className="px-1.5 text-center">Status</div>
                     <div className="px-1.5 text-center">Due date</div>
                     <div className="px-1.5 text-center">Priority</div>

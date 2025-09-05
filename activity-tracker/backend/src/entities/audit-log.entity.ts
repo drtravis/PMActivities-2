@@ -1,29 +1,26 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
 
 export enum EntityType {
+  ORGANIZATION = 'organization',
   USER = 'user',
-  ACTIVITY = 'activity',
   PROJECT = 'project',
-  COMMENT = 'comment',
-  ORGANIZATION = 'organization'
+  ACTIVITY = 'activity',
+  TASK = 'task',
+  BOARD = 'board',
+  COMMENT = 'comment'
 }
 
 export enum AuditAction {
   CREATE = 'create',
   UPDATE = 'update',
   DELETE = 'delete',
-  SUBMIT = 'submit',
   APPROVE = 'approve',
   REJECT = 'reject',
-  LOGIN = 'login',
-  LOGOUT = 'logout',
-  INVITE_USER = 'invite_user',
-  ACCEPT_INVITATION = 'accept_invitation',
-  VIEW = 'view',
+  SUBMIT = 'submit',
   EXPORT = 'export',
-  BULK_UPDATE = 'bulk_update',
-  PASSWORD_CHANGE = 'password_change',
-  ROLE_CHANGE = 'role_change',
+  LOGIN = 'login',
+  INVITE_USER = 'invite_user',
+  ACCEPT_INVITATION = 'accept_invitation'
 }
 
 @Entity('audit_logs')
@@ -46,15 +43,18 @@ export class AuditLog {
   })
   action: AuditAction;
 
-  @Column('jsonb', { nullable: true })
-  details: Record<string, any>;
+  @Column('uuid')
+  userId: string;
+
+  @Column('json', { nullable: true })
+  oldValues?: Record<string, any>;
+
+  @Column('json', { nullable: true })
+  newValues?: Record<string, any>;
 
   @ManyToOne('User')
   user: any;
 
-  @Column('uuid')
-  userId: string;
-
   @CreateDateColumn()
-  timestamp: Date;
+  createdAt: Date;
 }

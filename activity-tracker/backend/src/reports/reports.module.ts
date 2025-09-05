@@ -5,9 +5,11 @@ import { ReportsController } from './reports.controller';
 import { Activity } from '../entities/activity.entity';
 import { User } from '../entities/user.entity';
 import { AuditLog } from '../entities/audit-log.entity';
+import { Task } from '../entities/task.entity';
+import { Board } from '../entities/board.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Activity, User, AuditLog])],
+  imports: [TypeOrmModule.forFeature([Activity, User, AuditLog, Task, Board])],
   controllers: [ReportsController],
   providers: [ReportsService],
   exports: [ReportsService],

@@ -98,8 +98,19 @@ const PMActivities: React.FC = () => {
         // Get tasks assigned to the selected member
         const memberTasks = await tasksAPI.getByAssignee(selectedMember.id);
         
-        // Transform tasks to activity format
+        // Transform tasks to activity format with proper status mapping
         const statusMap: Record<string, Activity['status']> = {
+          // Database task statuses to activity status values
+          'assigned': 'draft',
+          'in_progress': 'draft',
+          'working_on_it': 'draft',
+          'stuck': 'in_review',
+          'blocked': 'in_review',
+          'completed': 'approved',
+          'done': 'approved',
+          'cancelled': 'rejected',
+          'canceled': 'rejected',
+          // Fallback mappings
           'Not Started': 'draft',
           'Working on it': 'draft',
           'Stuck': 'in_review',
@@ -112,7 +123,7 @@ const PMActivities: React.FC = () => {
           Low: 'low',
           Medium: 'medium',
           High: 'high',
-          Urgent: 'high',
+          Urgent: 'urgent',
         };
 
         const getProgressFromTaskStatus = (status: string): number => {

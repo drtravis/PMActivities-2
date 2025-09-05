@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Activity, ApprovalState } from '../entities/activity.entity';
 import { User, UserRole } from '../entities/user.entity';
 import { AuditLog } from '../entities/audit-log.entity';
+import { Task } from '../entities/task.entity';
+import { Board } from '../entities/board.entity';
 import { Cache } from '../common/decorators/cache.decorator';
 
 export interface ActivityStatusReport {
@@ -48,6 +50,10 @@ export class ReportsService {
     private activityRepository: Repository<Activity>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Task)
+    private taskRepository: Repository<Task>,
+    @InjectRepository(Board)
+    private boardRepository: Repository<Board>,
     @InjectRepository(AuditLog)
     private auditLogRepository: Repository<AuditLog>,
   ) {}
@@ -308,6 +314,142 @@ export class ReportsService {
         activity.createdAt.toISOString(),
         activity.updatedAt.toISOString(),
         `"${activity.tags?.join('; ') || ''}"`
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    return csvRows.join('\n');
+  }
+
+  @Cache('task-analytics', 300) // 5 minutes
+  async getTaskAnalytics(organizationId: string, filters: any = {}) {
+    const query = this.taskRepository.createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignee', 'assignee')
+      .leftJoinAndSelect('task.board', 'board')
+      .where('task.organizationId = :organizationId', { organizationId });
+
+    if (filters.boardId) {
+      query.andWhere('task.boardId = :boardId', { boardId: filters.boardId });
+    }
+
+    if (filters.startDate) {
+      query.andWhere('task.createdAt >= :startDate', { startDate: new Date(filters.startDate) });
+    }
+
+    if (filters.endDate) {
+      query.andWhere('task.createdAt <= :endDate', { endDate: new Date(filters.endDate) });
+    }
+
+    const tasks = await query.getMany();
+
+    const analytics = {
+      totalTasks: tasks.length,
+      byStatus: {} as Record<string, number>,
+      byPriority: {} as Record<string, number>,
+      byAssignee: {} as Record<string, number>,
+      completionRate: 0,
+      averageCompletionTime: 0,
+      overdueTasks: 0,
+    };
+
+    let completedTasks = 0;
+    let totalCompletionTime = 0;
+    const now = new Date();
+
+    tasks.forEach(task => {
+      // Status breakdown
+      analytics.byStatus[task.status] = (analytics.byStatus[task.status] || 0) + 1;
+
+      // Priority breakdown
+      analytics.byPriority[task.priority] = (analytics.byPriority[task.priority] || 0) + 1;
+
+      // Assignee breakdown
+      if (task.assignee) {
+        analytics.byAssignee[task.assignee.name] = (analytics.byAssignee[task.assignee.name] || 0) + 1;
+      }
+
+      // Completion tracking
+      if (task.status === 'Done' || task.status === 'Completed') {
+        completedTasks++;
+        if (task.updatedAt && task.createdAt) {
+          totalCompletionTime += task.updatedAt.getTime() - task.createdAt.getTime();
+        }
+      }
+
+      // Overdue tracking
+      if (task.dueDate && task.dueDate < now && task.status !== 'Done' && task.status !== 'Completed') {
+        analytics.overdueTasks++;
+      }
+    });
+
+    analytics.completionRate = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
+    analytics.averageCompletionTime = completedTasks > 0 ? totalCompletionTime / completedTasks / (1000 * 60 * 60 * 24) : 0; // in days
+
+    return analytics;
+  }
+
+  @Cache('board-performance', 300) // 5 minutes
+  async getBoardPerformance(organizationId: string, filters: any = {}) {
+    const query = this.boardRepository.createQueryBuilder('board')
+      .leftJoinAndSelect('board.tasks', 'tasks')
+      .leftJoinAndSelect('tasks.assignee', 'assignee')
+      .where('board.organizationId = :organizationId', { organizationId });
+
+    const boards = await query.getMany();
+
+    return boards.map(board => {
+      const tasks = board.tasks || [];
+      const completedTasks = tasks.filter(t => t.status === 'Done' || t.status === 'Completed');
+      const overdueTasks = tasks.filter(t => t.dueDate && t.dueDate < new Date() && t.status !== 'Done' && t.status !== 'Completed');
+
+      return {
+        boardId: board.id,
+        boardName: board.name,
+        totalTasks: tasks.length,
+        completedTasks: completedTasks.length,
+        completionRate: tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0,
+        overdueTasks: overdueTasks.length,
+        tasksByStatus: tasks.reduce((acc, task) => {
+          acc[task.status] = (acc[task.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+      };
+    });
+  }
+
+  async exportTasksCSV(organizationId: string, filters: any = {}): Promise<string> {
+    const query = this.taskRepository.createQueryBuilder('task')
+      .leftJoinAndSelect('task.assignee', 'assignee')
+      .leftJoinAndSelect('task.board', 'board')
+      .where('task.organizationId = :organizationId', { organizationId });
+
+    if (filters.boardId) {
+      query.andWhere('task.boardId = :boardId', { boardId: filters.boardId });
+    }
+
+    if (filters.status) {
+      query.andWhere('task.status = :status', { status: filters.status });
+    }
+
+    const tasks = await query.getMany();
+
+    const csvRows = [
+      'ID,Title,Description,Status,Priority,Assignee,Board,Due Date,Created At,Updated At,Tags'
+    ];
+
+    tasks.forEach(task => {
+      const row = [
+        task.id,
+        `"${task.title.replace(/"/g, '""')}"`,
+        `"${(task.description || '').replace(/"/g, '""')}"`,
+        task.status,
+        task.priority,
+        `"${task.assignee?.name || ''}"`,
+        `"${task.board?.name || ''}"`,
+        task.dueDate?.toISOString() || '',
+        task.createdAt.toISOString(),
+        task.updatedAt.toISOString(),
+        `"${task.tags?.join('; ') || ''}"`
       ];
       csvRows.push(row.join(','));
     });

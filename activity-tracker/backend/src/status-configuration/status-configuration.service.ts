@@ -6,19 +6,14 @@ import { StatusConfiguration, StatusType } from '../entities/status-configuratio
 export interface CreateStatusConfigDto {
   type: StatusType;
   name: string;
-  displayName: string;
-  color: string;
-  description?: string;
-  workflowRules?: any;
+  color?: string;
 }
 
 export interface UpdateStatusConfigDto {
-  displayName?: string;
+  name?: string;
   color?: string;
-  description?: string;
   isActive?: boolean;
-  order?: number;
-  workflowRules?: any;
+  orderIndex?: number;
 }
 
 @Injectable()
@@ -31,21 +26,21 @@ export class StatusConfigurationService {
   async getByOrganization(organizationId: string): Promise<StatusConfiguration[]> {
     return this.statusConfigRepo.find({
       where: { organizationId },
-      order: { type: 'ASC', order: 'ASC' },
+      order: { type: 'ASC', orderIndex: 'ASC' },
     });
   }
 
   async getByType(organizationId: string, type: StatusType): Promise<StatusConfiguration[]> {
     return this.statusConfigRepo.find({
       where: { organizationId, type },
-      order: { order: 'ASC' },
+      order: { orderIndex: 'ASC' },
     });
   }
 
   async getActiveByType(organizationId: string, type: StatusType): Promise<StatusConfiguration[]> {
     return this.statusConfigRepo.find({
       where: { organizationId, type, isActive: true },
-      order: { order: 'ASC' },
+      order: { orderIndex: 'ASC' },
     });
   }
 
@@ -72,8 +67,7 @@ export class StatusConfigurationService {
     const statusConfig = this.statusConfigRepo.create({
       organizationId,
       ...dto,
-      order: (maxOrder?.maxOrder || 0) + 1,
-      isDefault: false,
+      orderIndex: (maxOrder?.maxOrder || 0) + 1,
       isActive: true,
     });
 
@@ -102,8 +96,8 @@ export class StatusConfigurationService {
       throw new NotFoundException('Status configuration not found');
     }
 
-    if (statusConfig.isDefault) {
-      throw new BadRequestException('Cannot delete default status configuration');
+    if (statusConfig.isSystemDefault()) {
+      throw new BadRequestException('Cannot delete system default status configuration');
     }
 
     await this.statusConfigRepo.remove(statusConfig);
@@ -117,7 +111,7 @@ export class StatusConfigurationService {
     for (let i = 0; i < statusIds.length; i++) {
       const status = statuses.find(s => s.id === statusIds[i]);
       if (status) {
-        status.order = i + 1;
+        status.orderIndex = i + 1;
         await this.statusConfigRepo.save(status);
       }
     }
@@ -134,43 +128,24 @@ export class StatusConfigurationService {
     }
 
     const defaultConfigs = [
-      // Unified Task/Activity statuses - comprehensive workflow statuses (always default)
-      { type: StatusType.TASK, name: 'to_do', displayName: 'To Do', color: '#c4c4c4', order: 1 },
-      { type: StatusType.TASK, name: 'assigned', displayName: 'Assigned', color: '#9cd326', order: 2 },
-      { type: StatusType.TASK, name: 'in_progress', displayName: 'In Progress', color: '#fdab3d', order: 3 },
-      { type: StatusType.TASK, name: 'completed', displayName: 'Completed', color: '#00c875', order: 4 },
-      { type: StatusType.TASK, name: 'backlog', displayName: 'Backlog', color: '#a25ddc', order: 5 },
-      { type: StatusType.TASK, name: 'on_hold', displayName: 'On Hold', color: '#ff642e', order: 6 },
-      { type: StatusType.TASK, name: 'in_review', displayName: 'In Review', color: '#037f4c', order: 7 },
-      { type: StatusType.TASK, name: 'approved', displayName: 'Approved', color: '#00c875', order: 8 },
-      { type: StatusType.TASK, name: 'closed', displayName: 'Closed', color: '#808080', order: 9 },
+      // Task statuses - simplified for our database schema
+      { type: StatusType.TASK, name: 'To Do', color: '#6B7280', orderIndex: 1 },
+      { type: StatusType.TASK, name: 'Working on it', color: '#3B82F6', orderIndex: 2 },
+      { type: StatusType.TASK, name: 'Stuck', color: '#EF4444', orderIndex: 3 },
+      { type: StatusType.TASK, name: 'Done', color: '#10B981', orderIndex: 4 },
 
-      // Activity statuses - same as task statuses for consistency (always default)
-      { type: StatusType.ACTIVITY, name: 'to_do', displayName: 'To Do', color: '#c4c4c4', order: 1 },
-      { type: StatusType.ACTIVITY, name: 'assigned', displayName: 'Assigned', color: '#9cd326', order: 2 },
-      { type: StatusType.ACTIVITY, name: 'in_progress', displayName: 'In Progress', color: '#fdab3d', order: 3 },
-      { type: StatusType.ACTIVITY, name: 'completed', displayName: 'Completed', color: '#00c875', order: 4 },
-      { type: StatusType.ACTIVITY, name: 'backlog', displayName: 'Backlog', color: '#a25ddc', order: 5 },
-      { type: StatusType.ACTIVITY, name: 'on_hold', displayName: 'On Hold', color: '#ff642e', order: 6 },
-      { type: StatusType.ACTIVITY, name: 'in_review', displayName: 'In Review', color: '#037f4c', order: 7 },
-      { type: StatusType.ACTIVITY, name: 'approved', displayName: 'Approved', color: '#00c875', order: 8 },
-      { type: StatusType.ACTIVITY, name: 'closed', displayName: 'Closed', color: '#808080', order: 9 },
-
-      // Approval workflow statuses
-      { type: StatusType.APPROVAL, name: 'pending', displayName: 'Pending', color: '#fdab3d', order: 1 },
-      { type: StatusType.APPROVAL, name: 'in_review', displayName: 'In Review', color: '#037f4c', order: 2 },
-      { type: StatusType.APPROVAL, name: 'approved', displayName: 'Approved', color: '#00c875', order: 3 },
-      { type: StatusType.APPROVAL, name: 'rejected', displayName: 'Rejected', color: '#e2445c', order: 4 },
-      { type: StatusType.APPROVAL, name: 'closed', displayName: 'Closed', color: '#808080', order: 5 },
+      // Activity statuses - simplified for our database schema
+      { type: StatusType.ACTIVITY, name: 'To Do', color: '#6B7280', orderIndex: 1 },
+      { type: StatusType.ACTIVITY, name: 'In Progress', color: '#3B82F6', orderIndex: 2 },
+      { type: StatusType.ACTIVITY, name: 'In Review', color: '#F59E0B', orderIndex: 3 },
+      { type: StatusType.ACTIVITY, name: 'Done', color: '#10B981', orderIndex: 4 },
     ];
 
     for (const config of defaultConfigs) {
       const statusConfig = this.statusConfigRepo.create({
         organizationId,
         ...config,
-        isDefault: true, // Mark as default - cannot be deleted
         isActive: true,
-        description: this.getDefaultStatusDescription(config.name),
       });
       await this.statusConfigRepo.save(statusConfig);
     }
@@ -180,20 +155,18 @@ export class StatusConfigurationService {
   async getStatusMapping(organizationId: string): Promise<{
     activity: Record<string, { displayName: string; color: string }>;
     task: Record<string, { displayName: string; color: string }>;
-    approval: Record<string, { displayName: string; color: string }>;
   }> {
     const statuses = await this.getByOrganization(organizationId);
     
     const mapping = {
       activity: {} as Record<string, { displayName: string; color: string }>,
       task: {} as Record<string, { displayName: string; color: string }>,
-      approval: {} as Record<string, { displayName: string; color: string }>,
     };
 
     for (const status of statuses) {
       if (status.isActive) {
         mapping[status.type][status.name] = {
-          displayName: status.displayName,
+          displayName: status.getDisplayName(),
           color: status.color,
         };
       }
@@ -222,31 +195,36 @@ export class StatusConfigurationService {
       return false;
     }
 
-    // Check if user role can set the target status
-    if (!toConfig.canBeSetByRole(userRole)) {
-      return false;
-    }
-
-    // Check if transition is allowed
-    if (!fromConfig.canTransitionTo(toStatus)) {
-      return false;
-    }
+    // Simplified validation - all transitions allowed for now
+    // TODO: Add role-based and workflow validation if needed
 
     return true;
   }
 
-  private getDefaultStatusDescription(name: string): string {
-    const descriptions: Record<string, string> = {
-      'to_do': 'Task created but not yet started',
-      'assigned': 'Allocated to a person/team, waiting to start',
-      'in_progress': 'Someone is actively working on it',
-      'completed': 'Work finished, no further action',
-      'backlog': 'Parked for later prioritization',
-      'on_hold': 'Cannot move forward due to dependencies or external factors',
-      'in_review': 'Under review or evaluation',
-      'approved': 'Approved and ready for next phase',
-      'closed': 'Fully wrapped up, no further updates expected',
+  async getUsageStats(organizationId: string, type?: StatusType) {
+    const query = this.statusConfigRepo.createQueryBuilder('status')
+      .where('status.organizationId = :organizationId', { organizationId });
+
+    if (type) {
+      query.andWhere('status.type = :type', { type });
+    }
+
+    const statuses = await query.getMany();
+
+    // This would require additional queries to count actual usage
+    // For now, return basic statistics
+    const stats = {
+      totalStatuses: statuses.length,
+      activeStatuses: statuses.filter(s => s.isActive).length,
+      inactiveStatuses: statuses.filter(s => !s.isActive).length,
+      byType: {} as Record<string, number>,
     };
-    return descriptions[name] || '';
+
+    statuses.forEach(status => {
+      stats.byType[status.type] = (stats.byType[status.type] || 0) + 1;
+    });
+
+    return stats;
   }
+
 }

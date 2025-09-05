@@ -27,6 +27,9 @@ export default function ClientHome() {
         case 'ADMIN':
           redirectPath = '/admin';
           break;
+        case 'PMO':
+          redirectPath = '/pmo';
+          break;
         case 'MEMBER':
           redirectPath = '/member';
           break;

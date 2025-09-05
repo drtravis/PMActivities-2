@@ -32,6 +32,20 @@ export class ReportsController {
     return this.reportsService.getApprovalAgingReport(req.user.organizationId);
   }
 
+  @Get('task-analytics')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.PMO)
+  async getTaskAnalytics(@Request() req, @Query() filters: any) {
+    return this.reportsService.getTaskAnalytics(req.user.organizationId, filters);
+  }
+
+  @Get('board-performance')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.PROJECT_MANAGER, UserRole.PMO)
+  async getBoardPerformance(@Request() req, @Query() filters: any) {
+    return this.reportsService.getBoardPerformance(req.user.organizationId, filters);
+  }
+
   @Get('export/activities/csv')
   async exportActivitiesCSV(
     @Request() req,
@@ -39,9 +53,24 @@ export class ReportsController {
     @Res() res: Response
   ) {
     const csvData = await this.reportsService.exportActivitiesCSV(req.user.organizationId, filters);
-    
+
     const filename = `activities-export-${new Date().toISOString().split('T')[0]}.csv`;
-    
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csvData);
+  }
+
+  @Get('export/tasks/csv')
+  async exportTasksCSV(
+    @Request() req,
+    @Query() filters: any,
+    @Res() res: Response
+  ) {
+    const csvData = await this.reportsService.exportTasksCSV(req.user.organizationId, filters);
+
+    const filename = `tasks-export-${new Date().toISOString().split('T')[0]}.csv`;
+
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(csvData);

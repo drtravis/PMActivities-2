@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'PROJECT_MANAGER' | 'MEMBER';
+  role: 'ADMIN' | 'PMO' | 'PROJECT_MANAGER' | 'MEMBER';
   organizationId?: string;
   organization_id?: string;
 }
@@ -44,6 +44,7 @@ export interface Activity {
   approvedBy?: User;
   approvedAt?: string;
   assignees: User[];
+  assignee?: User; // Task assignee (who the task is assigned to)
   comments: Comment[];
   createdAt: string;
   updatedAt: string;

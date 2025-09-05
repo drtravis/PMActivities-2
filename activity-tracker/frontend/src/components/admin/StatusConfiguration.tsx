@@ -53,35 +53,7 @@ export function StatusConfiguration() {
     description: '',
   });
 
-  // Default status configurations - unified Task/Activity statuses
-  const defaultStatusSets: StatusSet[] = [
-    {
-      type: 'task',
-      title: 'Task & Activity Statuses',
-      description: 'Unified execution states for both tasks and activities',
-      statuses: [
-        { id: '1', type: 'task', name: 'not_started', displayName: 'Not Started', color: '#c4c4c4', order: 1, isDefault: true, isActive: true },
-        { id: '2', type: 'task', name: 'working_on_it', displayName: 'Working on it', color: '#fdab3d', order: 2, isDefault: true, isActive: true },
-        { id: '3', type: 'task', name: 'stuck', displayName: 'Stuck', color: '#e2445c', order: 3, isDefault: true, isActive: true },
-        { id: '4', type: 'task', name: 'done', displayName: 'Done', color: '#00c875', order: 4, isDefault: true, isActive: true },
-        { id: '5', type: 'task', name: 'blocked', displayName: 'Blocked', color: '#a25ddc', order: 5, isDefault: true, isActive: true },
-        { id: '6', type: 'task', name: 'canceled', displayName: 'Canceled', color: '#808080', order: 6, isDefault: true, isActive: true },
-      ]
-    },
-    {
-      type: 'approval',
-      title: 'Approval Statuses',
-      description: 'Lifecycle and approval workflow states',
-      statuses: [
-        { id: '12', type: 'approval', name: 'draft', displayName: 'Draft', color: '#6B7280', order: 1, isDefault: true, isActive: true },
-        { id: '13', type: 'approval', name: 'submitted', displayName: 'Submitted', color: '#F59E0B', order: 2, isDefault: true, isActive: true },
-        { id: '14', type: 'approval', name: 'approved', displayName: 'Approved', color: '#10B981', order: 3, isDefault: true, isActive: true },
-        { id: '15', type: 'approval', name: 'reopened', displayName: 'Reopened', color: '#3B82F6', order: 4, isDefault: true, isActive: true },
-        { id: '16', type: 'approval', name: 'rejected', displayName: 'Rejected', color: '#EF4444', order: 5, isDefault: true, isActive: true },
-        { id: '17', type: 'approval', name: 'closed', displayName: 'Closed', color: '#6B7280', order: 6, isDefault: true, isActive: true },
-      ]
-    }
-  ];
+  // This component now loads all status configurations dynamically from the database
 
   useEffect(() => {
     fetchStatusConfigurations();
@@ -133,8 +105,8 @@ export function StatusConfiguration() {
     } catch (error) {
       console.error('Failed to fetch status configurations:', error);
       toast.error('Failed to load status configurations');
-      // Fall back to default configurations
-      setStatusSets(defaultStatusSets);
+      // Set empty status sets if loading fails
+      setStatusSets([]);
     } finally {
       setLoading(false);
     }
