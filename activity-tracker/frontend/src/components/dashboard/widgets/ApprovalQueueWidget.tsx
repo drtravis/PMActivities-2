@@ -212,11 +212,9 @@ export const ApprovalQueueWidget: React.FC<ApprovalQueueWidgetProps> = ({ widget
 
   return (
     <BaseWidget
-      title="Approval Queue"
-      icon="👍"
+      widget={widget}
       onEdit={onEdit}
       onRemove={onRemove}
-      loading={loading}
     >
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {approvals.length === 0 ? (

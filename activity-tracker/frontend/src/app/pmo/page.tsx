@@ -19,7 +19,7 @@ import { PMOReports } from '@/components/pmo/PMOReports';
 import { PasswordChange } from '@/components/member/PasswordChange';
 
 export default function PMODashboard() {
-  const { user, setUser } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -134,9 +134,7 @@ export default function PMODashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('pmactivities2_token');
-    localStorage.removeItem('user');
-    setUser(null);
+    logout();
     router.push('/login');
   };
 

@@ -210,11 +210,9 @@ export const ProjectOverviewWidget: React.FC<ProjectOverviewWidgetProps> = ({ wi
 
   return (
     <BaseWidget
-      title="Project Overview"
-      icon="📁"
+      widget={widget}
       onEdit={onEdit}
       onRemove={onRemove}
-      loading={loading}
     >
       <div className="space-y-4 max-h-96 overflow-y-auto">
         {projects.length === 0 ? (

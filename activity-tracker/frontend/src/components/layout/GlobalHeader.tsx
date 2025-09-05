@@ -22,7 +22,7 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
       if (user && !organization?.id) {
         try {
           const token = typeof window !== 'undefined' ? localStorage.getItem('pmactivities2_token') : null;
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/organization`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/organization`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',

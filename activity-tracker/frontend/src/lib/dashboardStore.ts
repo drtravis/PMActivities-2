@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface DashboardWidget {
   id: string;
-  type: 'stats' | 'chart' | 'tasks' | 'activities' | 'calendar' | 'notes' | 'quick-actions' | 'team' | 'notifications';
+  type: 'stats' | 'chart' | 'tasks' | 'activities' | 'calendar' | 'notes' | 'quick-actions' | 'team' | 'notifications' | 'project-overview' | 'approval-queue' | 'activity-feed';
   title: string;
   x: number;
   y: number;

@@ -29,8 +29,8 @@ export default function LoginPage() {
       const response = await authAPI.login(data.email, data.password);
       console.log('Login response:', response);
 
-      // Handle token from NestJS backend (returns 'access_token')
-      const token = response.access_token;
+      // Handle token from backend (returns 'token')
+      const token = response.token;
       const user = response.user;
       console.log('Token:', token);
       console.log('User:', user);

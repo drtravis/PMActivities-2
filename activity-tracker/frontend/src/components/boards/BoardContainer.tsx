@@ -202,9 +202,8 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ boardId }) => {
 
   const handleTaskCreate = async (taskData: Omit<Task, 'id'>) => {
     try {
-      const newTask = await tasksAPI.create({
+      const newTask = await boardsAPI.createTask(boardId, {
         ...taskData,
-        boardId,
       });
       
       const transformedTask: Task = {
@@ -236,7 +235,7 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ boardId }) => {
 
   const handleTaskMove = async (taskId: string, newSection: string, newPosition: number) => {
     try {
-      await tasksAPI.move(taskId, { section: newSection, position: newPosition });
+      await boardsAPI.updateTask(taskId, { section: newSection, position: newPosition });
       setTasks(prev => prev.map(task => 
         task.id === taskId 
           ? { ...task, section: newSection, position: newPosition, lastUpdated: new Date().toISOString() }
@@ -256,11 +255,11 @@ export const BoardContainer: React.FC<BoardContainerProps> = ({ boardId }) => {
   const handleBoardNameChange = async (newName: string) => {
     try {
       await boardsAPI.update(boardId, { name: newName });
-      setBoard(prev => ({ ...prev, name: newName }));
+      setBoard((prev: any) => ({ ...prev, name: newName }));
     } catch (error) {
       console.error('Error updating board name:', error);
       // Optimistic update for development
-      setBoard(prev => ({ ...prev, name: newName }));
+      setBoard((prev: any) => ({ ...prev, name: newName }));
     }
   };
 

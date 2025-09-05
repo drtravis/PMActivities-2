@@ -32,7 +32,7 @@ export interface Activity {
   endDate?: string;
   status: 'Not Started' | 'Working on it' | 'Stuck' | 'Done' | 'Blocked' | 'Canceled';
   approvalState: 'draft' | 'submitted' | 'approved' | 'closed' | 'reopened' | 'rejected';
-  priority: 'low' | 'medium' | 'high';
+  priority: 'low' | 'medium' | 'high' | 'urgent' | 'Urgent' | 'High' | 'Medium' | 'Low';
   tags?: string[];
   projectId: string;
   project: Project;

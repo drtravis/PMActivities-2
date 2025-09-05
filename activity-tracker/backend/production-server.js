@@ -173,7 +173,7 @@ app.get('/db-test', async (req, res) => {
 });
 
 // Auth endpoints
-app.post('/auth/register', async (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, name, role = 'MEMBER' } = req.body;
 
@@ -204,7 +204,7 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-app.post('/auth/login', async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -257,7 +257,7 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-app.post('/auth/create-organization', authenticateToken, async (req, res) => {
+app.post('/api/auth/create-organization', authenticateToken, async (req, res) => {
   try {
     const { name, description = '' } = req.body;
 
@@ -290,7 +290,7 @@ app.post('/auth/create-organization', authenticateToken, async (req, res) => {
 });
 
 // Organization endpoints
-app.get('/organization', authenticateToken, async (req, res) => {
+app.get('/api/organization', authenticateToken, async (req, res) => {
   try {
     const connection = await dbPool.getConnection();
     const [rows] = await connection.execute(
@@ -319,7 +319,7 @@ app.get('/organization', authenticateToken, async (req, res) => {
   }
 });
 
-app.put('/organization', authenticateToken, async (req, res) => {
+app.put('/api/organization', authenticateToken, async (req, res) => {
   try {
     const { name, description } = req.body;
 
@@ -341,7 +341,7 @@ app.put('/organization', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/organization/users/count', authenticateToken, async (req, res) => {
+app.get('/api/organization/users/count', authenticateToken, async (req, res) => {
   try {
     const connection = await dbPool.getConnection();
     const [rows] = await connection.execute(
@@ -357,7 +357,7 @@ app.get('/organization/users/count', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/organization/users', authenticateToken, async (req, res) => {
+app.get('/api/organization/users', authenticateToken, async (req, res) => {
   try {
     const connection = await dbPool.getConnection();
     const [rows] = await connection.execute(
@@ -380,7 +380,7 @@ app.get('/organization/users', authenticateToken, async (req, res) => {
 });
 
 // Status Configuration endpoints
-app.get('/status-configuration', authenticateToken, (req, res) => {
+app.get('/api/status-configuration', authenticateToken, (req, res) => {
   try {
     const { type } = req.query;
     
@@ -415,7 +415,7 @@ app.get('/status-configuration', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/status-configuration/active', authenticateToken, (req, res) => {
+app.get('/api/status-configuration/active', authenticateToken, (req, res) => {
   try {
     const { type } = req.query;
     
@@ -450,7 +450,7 @@ app.get('/status-configuration/active', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/status-configuration/mapping', authenticateToken, (req, res) => {
+app.get('/api/status-configuration/mapping', authenticateToken, (req, res) => {
   try {
     const mapping = {
       activity: {
@@ -479,7 +479,7 @@ app.get('/status-configuration/mapping', authenticateToken, (req, res) => {
   }
 });
 
-app.post('/status-configuration/validate-transition', authenticateToken, (req, res) => {
+app.post('/api/status-configuration/validate-transition', authenticateToken, (req, res) => {
   try {
     const { type, fromStatus, toStatus } = req.body;
     const isValid = true; // Allow all transitions for now
@@ -490,8 +490,52 @@ app.post('/status-configuration/validate-transition', authenticateToken, (req, r
   }
 });
 
+// Users endpoints
+app.get('/api/users', authenticateToken, async (req, res) => {
+  try {
+    const connection = await dbPool.getConnection();
+    const [rows] = await connection.execute(`
+      SELECT u.id, u.name, u.email, u.role, u.created_at, u.updated_at,
+             o.name as organization_name
+      FROM users u
+      LEFT JOIN organizations o ON u.organization_id = o.id
+      WHERE u.organization_id = ?
+      ORDER BY u.created_at DESC
+    `, [req.user.organizationId]);
+    connection.release();
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+app.get('/api/users/profile', authenticateToken, async (req, res) => {
+  try {
+    const connection = await dbPool.getConnection();
+    const [rows] = await connection.execute(`
+      SELECT u.id, u.name, u.email, u.role, u.created_at, u.updated_at,
+             o.name as organization_name
+      FROM users u
+      LEFT JOIN organizations o ON u.organization_id = o.id
+      WHERE u.id = ?
+    `, [req.user.userId]);
+    connection.release();
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Failed to fetch user profile' });
+  }
+});
+
 // Activities endpoints
-app.get('/activities', authenticateToken, async (req, res) => {
+app.get('/api/activities', authenticateToken, async (req, res) => {
   try {
     const connection = await dbPool.getConnection();
     const [rows] = await connection.execute(`
@@ -684,6 +728,59 @@ app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Update task error:', error);
     res.status(500).json({ error: 'Failed to update task' });
+  }
+});
+
+// Board endpoints (basic implementation)
+app.get('/api/boards', authenticateToken, async (req, res) => {
+  try {
+    // For now, return a simple board structure based on tasks
+    res.json([
+      {
+        id: 'default-board',
+        name: 'Task Board',
+        description: 'Default task board',
+        columns: [
+          { id: 'assigned', name: 'Assigned', tasks: [] },
+          { id: 'in_progress', name: 'In Progress', tasks: [] },
+          { id: 'completed', name: 'Completed', tasks: [] }
+        ]
+      }
+    ]);
+  } catch (error) {
+    console.error('Error fetching boards:', error);
+    res.status(500).json({ error: 'Failed to fetch boards' });
+  }
+});
+
+app.get('/api/boards/me', authenticateToken, async (req, res) => {
+  try {
+    // Return user's personal board
+    res.json({
+      id: 'my-board',
+      name: 'My Tasks',
+      description: 'Personal task board',
+      columns: [
+        { id: 'assigned', name: 'Assigned', tasks: [] },
+        { id: 'in_progress', name: 'In Progress', tasks: [] },
+        { id: 'completed', name: 'Completed', tasks: [] }
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching user board:', error);
+    res.status(500).json({ error: 'Failed to fetch user board' });
+  }
+});
+
+// Audit endpoints (basic implementation)
+app.get('/api/audit/my-activity', authenticateToken, async (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+    // For now, return empty array - can be implemented later
+    res.json([]);
+  } catch (error) {
+    console.error('Error fetching audit logs:', error);
+    res.status(500).json({ error: 'Failed to fetch audit logs' });
   }
 });
 

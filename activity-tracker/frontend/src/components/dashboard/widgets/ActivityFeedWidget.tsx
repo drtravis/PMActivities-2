@@ -195,11 +195,9 @@ export const ActivityFeedWidget: React.FC<ActivityFeedWidgetProps> = ({ widget, 
 
   return (
     <BaseWidget
-      title="Activity Feed"
-      icon="📈"
+      widget={widget}
       onEdit={onEdit}
       onRemove={onRemove}
-      loading={loading}
     >
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {feedItems.length === 0 ? (

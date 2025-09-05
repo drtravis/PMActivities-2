@@ -361,7 +361,6 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
           'canceled': 'Done',
           // Direct mappings (if UI status values are used directly)
           'To Do': 'To Do',
-          'In Progress': 'In Progress',
           'In Review': 'In Review',
           'Done': 'Done',
           // Legacy fallbacks
