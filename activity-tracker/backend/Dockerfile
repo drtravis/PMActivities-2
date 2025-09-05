@@ -3,7 +3,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install specific versions to avoid conflicts
-RUN npm install express@4.18.2 mysql2@3.6.5 bcrypt@5.1.1 jsonwebtoken@9.0.2 cors@2.8.5
+RUN npm install express@4.18.2 mysql2@3.6.5 bcrypt@5.1.1 jsonwebtoken@9.0.2 cors@2.8.5 multer@1.4.5-lts.1
 
 # Copy application code
 COPY production-server.js ./

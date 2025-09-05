@@ -77,7 +77,17 @@ export function UserManagement() {
 
   const handleCreateUser = async () => {
     try {
-      const response = await fetch('/api/users', {
+      // Map frontend roles to backend roles
+      const roleMapping = {
+        'pm': 'project_manager',
+        'admin': 'admin',
+        'pmo': 'pmo',
+        'member': 'member'
+      };
+
+      const mappedRole = roleMapping[newUser.role] || 'member';
+
+      const response = await fetch('/api/auth/invite', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -86,34 +96,31 @@ export function UserManagement() {
         body: JSON.stringify({
           name: newUser.name,
           email: newUser.email,
-          password: newUser.password,
-          role: newUser.role === 'pm' ? 'PROJECT_MANAGER' : 
-                newUser.role === 'admin' ? 'ADMIN' : 
-                newUser.role === 'pmo' ? 'PMO' : 'MEMBER',
+          role: mappedRole,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create user');
       }
       
       const result = await response.json();
-      
+
       // Add the new user to the list
       const createdUser: User = {
-        id: result.userId || result.user?.id,
-        name: newUser.name,
-        email: newUser.email,
+        id: result.id,
+        name: result.name,
+        email: result.email,
         role: newUser.role,
-        isActive: true,
-        createdAt: new Date().toISOString().split('T')[0],
+        isActive: result.isActive,
+        createdAt: result.createdAt,
       };
-      
+
       setUsers([...users, createdUser]);
       setNewUser({ name: '', email: '', role: 'member', password: '' });
       setShowCreateModal(false);
-      toast.success('User created successfully');
+      toast.success(`User created successfully! Email: ${result.email}, Password: Password123!`);
     } catch (error: any) {
       console.error('Error creating user:', error);
       toast.error(error.message || 'Failed to create user');
@@ -361,13 +368,14 @@ export function UserManagement() {
               <option value="admin">Admin</option>
             </select>
           </div>
-          <Input
-            label="Temporary Password"
-            type="password"
-            value={newUser.password}
-            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-            placeholder="Enter temporary password"
-          />
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+            <p className="text-sm text-blue-800">
+              <strong>Default Password:</strong> Password123!
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Users can login with this password and should change it after first login.
+            </p>
+          </div>
           <div className="flex justify-end space-x-3 pt-4">
             <Button
               variant="outline"
@@ -377,7 +385,7 @@ export function UserManagement() {
             </Button>
             <Button
               onClick={handleCreateUser}
-              disabled={!newUser.name || !newUser.email || !newUser.password}
+              disabled={!newUser.name || !newUser.email}
             >
               Create User
             </Button>
