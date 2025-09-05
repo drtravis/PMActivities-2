@@ -1,4 +1,4 @@
-name: Deploy Backend to Azure App Service
+name: Deploy Backend to Azure Container Apps
 
 on:
   push:
@@ -6,28 +6,36 @@ on:
     paths: [ 'activity-tracker/backend/**' ]
   workflow_dispatch: # Allow manual trigger
 
+env:
+  AZURE_CONTAINER_APP_NAME: pmactivities-backend
+  AZURE_RESOURCE_GROUP: pmactivities-rg
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     name: Build and Deploy Backend
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    - name: Install dependencies
+    - name: Build Docker image
       run: |
         cd activity-tracker/backend
-        npm ci --production
+        docker build -t pmactivities-backend:latest .
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
+    - name: Log in to Azure
+      uses: azure/login@v1
       with:
-        app-name: 'pactivities-backend-v2'
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: './activity-tracker/backend'
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Build and deploy Container App
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        containerAppName: ${{ env.AZURE_CONTAINER_APP_NAME }}
+        resourceGroup: ${{ env.AZURE_RESOURCE_GROUP }}
+        imageToBuild: activity-tracker/backend
+        dockerfilePath: activity-tracker/backend/Dockerfile

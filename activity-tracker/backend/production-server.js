@@ -12,7 +12,7 @@ const dbConfig = {
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'PMActivity2',
+  database: process.env.DB_DATABASE || 'pmactivity2',
   acquireTimeout: 60000,
   timeout: 60000,
   reconnect: true
@@ -523,6 +523,167 @@ app.get('/activities', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Fetch activities error:', error);
     res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+});
+
+// Tasks endpoints
+app.get('/api/tasks', authenticateToken, async (req, res) => {
+  try {
+    const { assigneeId } = req.query;
+    const connection = await dbPool.getConnection();
+
+    let query = `
+      SELECT t.*,
+             u.name as assignee_name, u.email as assignee_email,
+             creator.name as created_by_name, creator.email as created_by_email,
+             p.name as project_name
+      FROM tasks t
+      LEFT JOIN users u ON t.assignee_id = u.id
+      LEFT JOIN users creator ON t.created_by = creator.id
+      LEFT JOIN projects p ON t.project_id = p.id
+      WHERE t.organization_id = ?
+    `;
+
+    const params = [req.user.organizationId];
+
+    if (assigneeId) {
+      query += ' AND t.assignee_id = ?';
+      params.push(assigneeId);
+    }
+
+    query += ' ORDER BY t.created_at DESC';
+
+    const [rows] = await connection.execute(query, params);
+    connection.release();
+
+    const tasks = rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      dueDate: row.due_date,
+      assigneeId: row.assignee_id,
+      assignee: row.assignee_name ? {
+        id: row.assignee_id,
+        name: row.assignee_name,
+        email: row.assignee_email
+      } : null,
+      createdBy: row.created_by_name ? {
+        id: row.created_by,
+        name: row.created_by_name,
+        email: row.created_by_email
+      } : null,
+      project: row.project_name ? {
+        id: row.project_id,
+        name: row.project_name
+      } : null,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Fetch tasks error:', error);
+    res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+});
+
+app.get('/api/tasks/my', authenticateToken, async (req, res) => {
+  try {
+    const connection = await dbPool.getConnection();
+
+    const [rows] = await connection.execute(`
+      SELECT t.*,
+             creator.name as created_by_name, creator.email as created_by_email,
+             p.name as project_name
+      FROM tasks t
+      LEFT JOIN users creator ON t.created_by = creator.id
+      LEFT JOIN projects p ON t.project_id = p.id
+      WHERE t.assignee_id = ? AND t.organization_id = ?
+      ORDER BY t.created_at DESC
+    `, [req.user.sub, req.user.organizationId]);
+
+    connection.release();
+
+    const tasks = rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      priority: row.priority,
+      dueDate: row.due_date,
+      assigneeId: row.assignee_id,
+      createdBy: row.created_by_name ? {
+        id: row.created_by,
+        name: row.created_by_name,
+        email: row.created_by_email
+      } : null,
+      project: row.project_name ? {
+        id: row.project_id,
+        name: row.project_name
+      } : null,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Fetch my tasks error:', error);
+    res.status(500).json({ error: 'Failed to fetch my tasks' });
+  }
+});
+
+app.post('/api/tasks', authenticateToken, async (req, res) => {
+  try {
+    const { title, description, status = 'assigned', priority = 'Medium', assigneeId, projectId, dueDate } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+
+    const connection = await dbPool.getConnection();
+
+    const [result] = await connection.execute(`
+      INSERT INTO tasks (id, title, description, status, priority, assignee_id, project_id, due_date, created_by, organization_id, created_at, updated_at)
+      VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+    `, [title, description, status, priority, assigneeId, projectId, dueDate, req.user.sub, req.user.organizationId]);
+
+    connection.release();
+
+    res.status(201).json({
+      message: 'Task created successfully',
+      taskId: result.insertId
+    });
+  } catch (error) {
+    console.error('Create task error:', error);
+    res.status(500).json({ error: 'Failed to create task' });
+  }
+});
+
+app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, status, priority, assigneeId, projectId, dueDate } = req.body;
+
+    const connection = await dbPool.getConnection();
+
+    const [result] = await connection.execute(`
+      UPDATE tasks
+      SET title = ?, description = ?, status = ?, priority = ?, assignee_id = ?, project_id = ?, due_date = ?, updated_at = NOW()
+      WHERE id = ? AND organization_id = ?
+    `, [title, description, status, priority, assigneeId, projectId, dueDate, id, req.user.organizationId]);
+
+    connection.release();
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    res.json({ message: 'Task updated successfully' });
+  } catch (error) {
+    console.error('Update task error:', error);
+    res.status(500).json({ error: 'Failed to update task' });
   }
 });
 
