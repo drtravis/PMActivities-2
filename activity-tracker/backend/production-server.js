@@ -17,9 +17,10 @@ const dbConfig = {
   user: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'pmactivity2',
+  // MySQL2 pool configuration
+  connectionLimit: 10,
+  queueLimit: 0,
   acquireTimeout: 60000,
-  timeout: 60000,
-  reconnect: true,
   // Azure Database for MySQL requires SSL by default
   ssl: useSsl ? { rejectUnauthorized: false } : undefined,
 };
