@@ -88,6 +88,26 @@ const upload = multer({
     }
   }
 });
+// Configure multer for task attachments
+const taskAttachmentStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads', 'task_attachments');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'attachment-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadTaskAttachment = multer({
+  storage: taskAttachmentStorage,
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+});
+
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -108,6 +128,18 @@ const authenticateToken = (req, res, next) => {
     req.user = user;
     next();
   });
+// Helper: record task activity
+async function recordTaskActivity(connection, { taskId, action, field = null, oldValue = null, newValue = null, performedBy }) {
+  try {
+    await connection.execute(`
+      INSERT INTO task_activities (id, task_id, action, field, old_value, new_value, performed_by, created_at)
+      VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW())
+    `, [taskId, action, field, oldValue, newValue, performedBy]);
+  } catch (e) {
+    console.error('Failed to record task activity:', e.message);
+  }
+}
+
 };
 
 // Database query with timeout wrapper
@@ -352,6 +384,41 @@ async function initDatabase() {
         )
       `);
       console.log('Created tasks table');
+
+      // Create task_activities table
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS task_activities (
+          id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+          task_id VARCHAR(36) NOT NULL,
+          action VARCHAR(50) NOT NULL,
+          field VARCHAR(50) NULL,
+          old_value TEXT NULL,
+          new_value TEXT NULL,
+          performed_by VARCHAR(36) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+          INDEX idx_task (task_id),
+          INDEX idx_action (action)
+        )
+      `);
+      console.log('Created task_activities table');
+
+      // Create task_attachments table
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS task_attachments (
+          id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+          task_id VARCHAR(36) NOT NULL,
+          file_name VARCHAR(255) NOT NULL,
+          file_path VARCHAR(500) NOT NULL,
+          mime_type VARCHAR(100) NOT NULL,
+          size BIGINT NOT NULL,
+          uploaded_by VARCHAR(36) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+          INDEX idx_task (task_id)
+        )
+      `);
+      console.log('Created task_attachments table');
     } catch (error) {
       console.error('Error creating tasks table:', error.message);
     }
@@ -1167,11 +1234,13 @@ app.post('/api/projects/:projectId/tasks', authenticateToken, async (req, res) =
       VALUES (UUID(), ?, ?, 'assigned', ?, ?, ?, ?, ?, ?, NOW(), NOW())
     `, [title, description, priority, assigneeId, projectId, dueDate, req.user.sub, req.user.organizationId]);
 
+    // Log activity
+    await recordTaskActivity(connection, { taskId: result.insertId || 'UNKNOWN', action: 'created', performedBy: req.user.sub, newValue: title });
+
     connection.release();
 
     res.status(201).json({
-      message: 'Task created and assigned successfully',
-      taskId: result.insertId
+      message: 'Task created and assigned successfully'
     });
   } catch (error) {
     console.error('Create task error:', error);
@@ -1305,6 +1374,9 @@ app.patch('/api/tasks/:id/status', authenticateToken, async (req, res) => {
       WHERE id = ? AND organization_id = ?
     `, [status, id, req.user.organizationId]);
 
+    // Log activity
+    await recordTaskActivity(connection, { taskId: id, action: 'status_changed', field: 'status', oldValue: task.status, newValue: status, performedBy: req.user.sub });
+
     connection.release();
 
     res.json({
@@ -1383,8 +1455,81 @@ app.patch('/api/tasks/:id/start', authenticateToken, async (req, res) => {
     }
 
     // Update task status to in_progress
+
+    // Log activity (starting)
+    await recordTaskActivity(connection, { taskId: id, action: 'started', performedBy: req.user.sub });
+
     const [result] = await connection.execute(`
       UPDATE tasks
+// Task attachments endpoints
+app.post('/api/tasks/:id/attachments', authenticateToken, uploadTaskAttachment.single('file'), async (req, res) => {
+  const { id } = req.params;
+  const file = req.file;
+  if (!file) return res.status(400).json({ error: 'No file uploaded' });
+  let connection;
+  try {
+    connection = await dbPool.getConnection();
+
+    // Ensure task belongs to user's org
+    const [rows] = await connection.execute('SELECT id FROM tasks WHERE id = ? AND organization_id = ?', [id, req.user.organizationId]);
+    if (rows.length === 0) {
+      connection.release();
+      fs.unlinkSync(file.path);
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    await connection.execute(`
+      INSERT INTO task_attachments (id, task_id, file_name, file_path, mime_type, size, uploaded_by, created_at)
+      VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW())
+    `, [id, file.originalname, file.filename, file.mimetype, file.size, req.user.sub]);
+
+    // Log activity
+    await recordTaskActivity(connection, { taskId: id, action: 'attachment_added', field: 'attachment', newValue: file.originalname, performedBy: req.user.sub });
+
+    connection.release();
+
+    res.json({ message: 'Attachment uploaded', file: { name: file.originalname, url: `/uploads/task_attachments/${file.filename}`, size: file.size, type: file.mimetype } });
+  } catch (error) {
+    if (connection) connection.release();
+    console.error('Upload attachment error:', error);
+    res.status(500).json({ error: 'Failed to upload attachment' });
+  }
+});
+
+app.get('/api/tasks/:id/attachments', authenticateToken, async (req, res) => {
+  const { id } = req.params; let connection;
+  try {
+    connection = await dbPool.getConnection();
+    const [rows] = await connection.execute(`
+      SELECT id, file_name, file_path, mime_type, size, uploaded_by, created_at
+      FROM task_attachments WHERE task_id = ? ORDER BY created_at DESC
+    `, [id]);
+    connection.release();
+    res.json(rows.map(r => ({ id: r.id, name: r.file_name, url: `/uploads/task_attachments/${r.file_path}`, type: r.mime_type, size: r.size, uploadedBy: r.uploaded_by, createdAt: r.created_at })));
+  } catch (error) {
+    if (connection) connection.release();
+    console.error('List attachments error:', error);
+    res.status(500).json({ error: 'Failed to list attachments' });
+  }
+});
+
+app.get('/api/tasks/:id/activities', authenticateToken, async (req, res) => {
+  const { id } = req.params; let connection;
+  try {
+    connection = await dbPool.getConnection();
+    const [rows] = await connection.execute(`
+      SELECT id, action, field, old_value, new_value, performed_by, created_at
+      FROM task_activities WHERE task_id = ? ORDER BY created_at DESC
+    `, [id]);
+    connection.release();
+    res.json(rows.map(r => ({ id: r.id, action: r.action, field: r.field, oldValue: r.old_value, newValue: r.new_value, performedBy: r.performed_by, createdAt: r.created_at })));
+  } catch (error) {
+    if (connection) connection.release();
+    console.error('List task activities error:', error);
+    res.status(500).json({ error: 'Failed to list task activities' });
+  }
+});
+
       SET status = 'in_progress', updated_at = NOW()
       WHERE id = ? AND organization_id = ?
     `, [id, req.user.organizationId]);
