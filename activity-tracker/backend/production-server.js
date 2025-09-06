@@ -29,7 +29,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -350,7 +350,7 @@ app.get('/db-test', async (req, res) => {
     const connection = await dbPool.getConnection();
     const [rows] = await connection.execute('SELECT 1 as test');
     connection.release();
-    
+
     res.json({
       status: 'Database connected',
       result: rows[0],
@@ -380,7 +380,7 @@ app.post('/api/auth/register', async (req, res) => {
     );
     connection.release();
 
-    res.status(201).json({ 
+    res.status(201).json({
       message: 'User registered successfully',
       userId: result.insertId
     });
@@ -421,9 +421,9 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
+      {
+        userId: user.id,
+        email: user.email,
         role: user.role,
         organizationId: user.organization_id
       },
@@ -812,7 +812,7 @@ app.get('/api/organization/users', authenticateToken, async (req, res) => {
 app.get('/api/status-configuration', authenticateToken, (req, res) => {
   try {
     const { type } = req.query;
-    
+
     const defaultStatuses = {
       activity: [
         { id: '1', name: 'TODO', type: 'activity', isActive: true, order: 1, color: '#6B7280' },
@@ -847,7 +847,7 @@ app.get('/api/status-configuration', authenticateToken, (req, res) => {
 app.get('/api/status-configuration/active', authenticateToken, (req, res) => {
   try {
     const { type } = req.query;
-    
+
     const defaultStatuses = {
       activity: [
         { id: '1', name: 'TODO', type: 'activity', isActive: true, order: 1, color: '#6B7280' },
@@ -968,9 +968,9 @@ app.get('/api/activities', authenticateToken, async (req, res) => {
   try {
     const connection = await dbPool.getConnection();
     const [rows] = await connection.execute(`
-      SELECT a.*, u.name as assigned_name, p.name as project_name 
-      FROM activities a 
-      LEFT JOIN users u ON a.assigned_to = u.id 
+      SELECT a.*, u.name as assigned_name, p.name as project_name
+      FROM activities a
+      LEFT JOIN users u ON a.assigned_to = u.id
       LEFT JOIN projects p ON a.project_id = p.id
       ORDER BY a.created_at DESC
     `);
@@ -1750,6 +1750,136 @@ app.patch('/api/projects/:id', authenticateToken, async (req, res) => {
   }
 });
 
+
+// Project members endpoints
+app.get('/api/projects/:projectId/members', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+  let connection;
+  try {
+    connection = await dbPool.getConnection();
+
+    // Verify project belongs to org
+    const [proj] = await connection.execute(
+      'SELECT id FROM projects WHERE id = ? AND organization_id = ?',
+      [projectId, req.user.organizationId]
+    );
+    if (proj.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const [rows] = await connection.execute(
+      `SELECT u.id, u.name, u.email, u.role as userRole, pm.role as projectRole
+       FROM project_members pm
+       JOIN users u ON u.id = pm.user_id
+       WHERE pm.project_id = ? AND u.organization_id = ?
+       ORDER BY u.name ASC`,
+      [projectId, req.user.organizationId]
+    );
+
+    const members = rows.map(r => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      role: r.userRole,
+      projectRole: r.projectRole
+    }));
+
+    res.json({ members });
+  } catch (error) {
+    console.error('Get project members error:', error);
+    res.status(500).json({ error: 'Failed to fetch project members' });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+app.post('/api/projects/:projectId/members', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+  const { userId } = req.body || {};
+  let connection;
+  try {
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    // Only admins and project managers can assign users
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'PROJECT_MANAGER') {
+      return res.status(403).json({ error: 'Only administrators and project managers can assign users to projects' });
+    }
+
+    connection = await dbPool.getConnection();
+
+    // Verify project belongs to org
+    const [proj] = await connection.execute(
+      'SELECT id FROM projects WHERE id = ? AND organization_id = ?',
+      [projectId, req.user.organizationId]
+    );
+    if (proj.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Verify user belongs to org and get user role
+    const [userRows] = await connection.execute(
+      'SELECT id, role FROM users WHERE id = ? AND organization_id = ?',
+      [userId, req.user.organizationId]
+    );
+    if (userRows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userRole = userRows[0].role || 'MEMBER';
+
+    try {
+      await connection.execute(
+        'INSERT INTO project_members (project_id, user_id, role) VALUES (?, ?, ?)',
+        [projectId, userId, userRole]
+      );
+    } catch (err) {
+      // Handle duplicate association gracefully
+      if (err && (err.code === 'ER_DUP_ENTRY' || String(err.message).includes('duplicate'))) {
+        return res.status(200).json({ message: 'User already assigned to this project' });
+      }
+      throw err;
+    }
+
+    res.status(201).json({ message: 'User assigned to project' });
+  } catch (error) {
+    console.error('Assign user to project error:', error);
+    res.status(500).json({ error: 'Failed to assign user to project', details: error.message });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
+app.delete('/api/projects/:projectId/members/:userId', authenticateToken, async (req, res) => {
+  const { projectId, userId } = req.params;
+  let connection;
+  try {
+    // Only admins and project managers can remove users
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'PROJECT_MANAGER') {
+      return res.status(403).json({ error: 'Only administrators and project managers can remove users from projects' });
+    }
+
+    connection = await dbPool.getConnection();
+
+    const [result] = await connection.execute(
+      'DELETE FROM project_members WHERE project_id = ? AND user_id = ?',
+      [projectId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    res.json({ message: 'User removed from project' });
+  } catch (error) {
+    console.error('Remove user from project error:', error);
+    res.status(500).json({ error: 'Failed to remove user from project' });
+  } finally {
+    if (connection) connection.release();
+  }
+});
+
 // Organization logo endpoints
 app.get('/api/organization/logo', async (req, res) => {
   try {
@@ -1976,7 +2106,7 @@ app.use('*', (req, res) => {
 async function startServer() {
   try {
     await initDatabase();
-    
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Activity Tracker API running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
