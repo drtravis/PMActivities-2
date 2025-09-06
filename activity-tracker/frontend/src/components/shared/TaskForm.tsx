@@ -70,9 +70,10 @@ export function TaskForm({ selectedProject, onTaskCreated, mode = 'member', onCa
   const loadProjectMembers = async (projectId: string) => {
     try {
       const projectMembers = await projectsAPI.getMembers(projectId);
-      setMembers(projectMembers || []);
+      setMembers(Array.isArray(projectMembers) ? projectMembers : []);
     } catch (error) {
       console.error('Failed to load project members:', error);
+      setMembers([]);
     }
   };
 

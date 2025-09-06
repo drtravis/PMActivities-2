@@ -542,7 +542,8 @@ export const projectsAPI = {
 
   getMembers: async (projectId: string) => {
     const response = await api.get(`/api/projects/${projectId}/members`);
-    return response.data;
+    // Backend returns { members: [...] }; normalize to array for frontend callers
+    return Array.isArray(response.data) ? response.data : (response.data?.members ?? []);
   }
 };
 
