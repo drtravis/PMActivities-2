@@ -9,7 +9,7 @@ on:
 env:
   AZURE_CONTAINER_APP_NAME: pmactivities-backend1
   AZURE_RESOURCE_GROUP: DefaultResourceGroup-null
-  AZURE_CONTAINER_REGISTRY: pmactivtiesacr
+  AZURE_CONTAINER_REGISTRY: pmactivitiesacr
   IMAGE_NAME: pmactivities-backend
 
 jobs:
