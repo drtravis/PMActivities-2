@@ -440,7 +440,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = jwt.sign(
       {
-        userId: user.id,
+        sub: user.id,
         email: user.email,
         role: user.role,
         organizationId: user.organization_id
@@ -965,7 +965,7 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
       FROM users u
       LEFT JOIN organizations o ON u.organization_id = o.id
       WHERE u.id = ?
-    `, [req.user.userId]);
+    `, [req.user.sub]);
     connection.release();
 
     if (rows.length === 0) {
@@ -1080,6 +1080,10 @@ app.get('/api/tasks', authenticateToken, async (req, res) => {
 
 app.get('/api/tasks/my', authenticateToken, async (req, res) => {
   try {
+    if (!req.user.sub || !req.user.organizationId) {
+      return res.status(400).json({ error: 'Invalid token: missing user ID or organization ID' });
+    }
+
     const connection = await dbPool.getConnection();
 
     const [rows] = await connection.execute(`
