@@ -1,8 +1,0 @@
-# Use the existing working image as base and update it
-FROM activitytrackeracr.azurecr.io/activity-tracker-backend:v9
-
-# Copy the updated server file
-COPY test-server.js ./
-
-# The rest remains the same - user, ports, etc. are already configured
-CMD ["node", "test-server.js"]

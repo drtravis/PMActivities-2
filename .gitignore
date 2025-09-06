@@ -142,3 +142,38 @@ build/Release
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Docker build context
+.dockerignore
+
+# Deployment scripts (keep only main ones)
+deploy-*.sh
+deploy-*.cmd
+*-deploy.yml
+containerapp.yaml
+web.config
+
+# Test images and assets
+test-*.png
+test-*.jpg
+test-*.gif
+
+# Multiple server variants (keep only main)
+*-server-*.js
+*-complete.js
+*-fixed.js
+*-minimal.js
+
+# Multiple Dockerfiles (keep only main)
+Dockerfile.*
