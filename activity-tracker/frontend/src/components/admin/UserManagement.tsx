@@ -78,6 +78,14 @@ export function UserManagement() {
 
       const mappedRole = roleMapping[newUser.role] || 'member';
 
+      // Debug logging
+      console.log('🔄 Creating user with data:', {
+        name: newUser.name,
+        email: newUser.email,
+        role: mappedRole,
+        originalRole: newUser.role
+      });
+
       // Use the proper API client instead of direct fetch
       const result = await authAPI.inviteUser({
         name: newUser.name,
@@ -101,7 +109,28 @@ export function UserManagement() {
       toast.success(`User created successfully! Email: ${result.email}, Password: Password123!`);
     } catch (error: any) {
       console.error('Error creating user:', error);
-      toast.error(error.message || 'Failed to create user');
+
+      // Enhanced error handling with specific messages
+      let errorMessage = 'Failed to create user';
+
+      if (error.response?.status === 400) {
+        const responseData = error.response?.data;
+        if (responseData?.error) {
+          errorMessage = responseData.error;
+        } else {
+          errorMessage = 'Invalid request. Please check the user details.';
+        }
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please login again.';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Permission denied. Only administrators can create users.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Backend service unavailable. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
