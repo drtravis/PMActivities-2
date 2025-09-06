@@ -657,6 +657,10 @@ app.post('/api/auth/create-organization', async (req, res) => {
     const connection = await dbPool.getConnection();
 
     try {
+      // Start transaction and temporarily disable foreign key checks
+      await connection.execute('START TRANSACTION');
+      await connection.execute('SET FOREIGN_KEY_CHECKS = 0');
+
       // Check if organization already exists
       const [existingOrg] = await connection.execute(
         'SELECT id FROM organizations WHERE name = ?',
@@ -664,6 +668,8 @@ app.post('/api/auth/create-organization', async (req, res) => {
       );
 
       if (existingOrg.length > 0) {
+        await connection.execute('ROLLBACK');
+        await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
         connection.release();
         return res.status(400).json({ error: 'Organization with this name already exists' });
       }
@@ -675,6 +681,8 @@ app.post('/api/auth/create-organization', async (req, res) => {
       );
 
       if (existingUser.length > 0) {
+        await connection.execute('ROLLBACK');
+        await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
         connection.release();
         return res.status(400).json({ error: 'User with this email already exists' });
       }
@@ -682,31 +690,27 @@ app.post('/api/auth/create-organization', async (req, res) => {
       // Hash password
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
-      // Generate UUID for user (create user first to avoid foreign key constraint)
+      // Generate UUID for user and organization
       const [userUuidResult] = await connection.execute('SELECT UUID() as id');
       const userId = userUuidResult[0].id;
-
-      // Create admin user first (without organization_id)
-      await connection.execute(
-        'INSERT INTO users (id, email, name, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())',
-        [userId, adminEmail, adminName, hashedPassword, 'ADMIN']
-      );
-
-      // Generate UUID for organization
       const [orgUuidResult] = await connection.execute('SELECT UUID() as id');
       const orgId = orgUuidResult[0].id;
 
-      // Create organization with the user as creator
+      // Create organization first (with created_by as the user we're about to create)
       await connection.execute(
         'INSERT INTO organizations (id, name, created_by, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
         [orgId, organizationName, userId]
       );
 
-      // Update user with organization_id
+      // Create admin user with organization_id
       await connection.execute(
-        'UPDATE users SET organization_id = ? WHERE id = ?',
-        [orgId, userId]
+        'INSERT INTO users (id, email, name, password, role, organization_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())',
+        [userId, adminEmail, adminName, hashedPassword, 'ADMIN', orgId]
       );
+
+      // Re-enable foreign key checks and commit transaction
+      await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
+      await connection.execute('COMMIT');
 
       connection.release();
 
@@ -725,6 +729,8 @@ app.post('/api/auth/create-organization', async (req, res) => {
         access_token
       });
     } catch (dbError) {
+      await connection.execute('ROLLBACK');
+      await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
       connection.release();
       console.error('Database error in create-organization:', dbError);
       throw dbError;
@@ -2113,16 +2119,6 @@ app.get('/api/db-schema', async (req, res) => {
       connection.release();
     }
   }
-});
-
-// Debug endpoint to check environment variables
-app.get('/debug/env', (req, res) => {
-  res.json({
-    NODE_ENV: process.env.NODE_ENV,
-    CORS_ORIGIN: process.env.CORS_ORIGIN,
-    PORT: process.env.PORT,
-    timestamp: new Date().toISOString()
-  });
 });
 
 // 404 handler
