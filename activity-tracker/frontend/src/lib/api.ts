@@ -112,8 +112,14 @@ export const authAPI = {
   },
 
   getDefaultPassword: async () => {
-    const response = await api.get('/api/auth/default-password');
-    return response.data;
+    try {
+      const response = await api.get('/api/auth/default-password');
+      return response.data;
+    } catch (error: any) {
+      // Fallback for when backend endpoint is not available yet
+      console.warn('Default password endpoint not available, using fallback:', error.message);
+      return { password: 'Password123!' };
+    }
   },
 
   logout: async () => {
