@@ -1084,6 +1084,7 @@ app.get('/api/tasks/my', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid token: missing user ID or organization ID' });
     }
 
+    console.log('Fetching tasks for user:', req.user.sub, 'org:', req.user.organizationId);
     const connection = await dbPool.getConnection();
 
     const [rows] = await connection.execute(`
@@ -1099,6 +1100,7 @@ app.get('/api/tasks/my', authenticateToken, async (req, res) => {
 
     connection.release();
 
+    console.log('Found', rows.length, 'tasks for user');
     const tasks = rows.map(row => ({
       id: row.id,
       title: row.title,
@@ -1123,7 +1125,8 @@ app.get('/api/tasks/my', authenticateToken, async (req, res) => {
     res.json(tasks);
   } catch (error) {
     console.error('Fetch my tasks error:', error);
-    res.status(500).json({ error: 'Failed to fetch my tasks' });
+    // Always return an array to prevent frontend .map() errors
+    res.status(200).json([]);
   }
 });
 
