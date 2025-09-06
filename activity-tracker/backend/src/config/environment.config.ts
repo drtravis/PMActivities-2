@@ -73,11 +73,11 @@ export function getEnvironmentConfig(configService: ConfigService): EnvironmentC
     port: parseInt(configService.get('PORT', '3001')),
     
     database: {
-      host: configService.get('DB_HOST', 'localhost'),
+      host: configService.get('DB_HOST', 'activity-tracker-mysql.mysql.database.azure.com'),
       port: parseInt(configService.get('DB_PORT', '3306')),
-      username: configService.get('DB_USERNAME', 'root'),
+      username: configService.get('DB_USERNAME', 'drtravi'),
       password: configService.get('DB_PASSWORD', ''),
-      database: configService.get('DB_NAME', 'PMActivity2'), // Keep existing local DB name
+      database: configService.get('DB_NAME', 'pmactivity2'), // Standardized database name
       ssl: configService.get('NODE_ENV') === 'production' && configService.get('DB_SSL', 'true') === 'true',
     },
     

@@ -41,9 +41,9 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
           // Return minimal config to prevent crash but still allow connection attempts
           return {
             type: 'mysql' as const,
-            host: configService.get<string>('DB_HOST') || 'pactivities-db.mysql.database.azure.com',
+            host: configService.get<string>('DB_HOST') || 'activity-tracker-mysql.mysql.database.azure.com',
             port: parseInt(configService.get<string>('DB_PORT') || '3306'),
-            username: configService.get<string>('DB_USERNAME') || 'travisai',
+            username: configService.get<string>('DB_USERNAME') || 'drtravi',
             password: configService.get<string>('DB_PASSWORD') || 'Haritha#12',
             database: configService.get<string>('DB_DATABASE') || 'PMActivity2',
             entities: [],

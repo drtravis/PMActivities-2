@@ -3,28 +3,15 @@ const mysql = require('mysql2/promise');
 async function testDatabase() {
   console.log('🔍 Testing PMActivities2 Database Implementation...\n');
 
-  // Try different connection configurations
+  // Standardized connection configuration for activity-tracker-mysql server
   const configs = [
     {
-      host: 'localhost',
+      host: 'activity-tracker-mysql.mysql.database.azure.com',
       port: 3306,
-      user: 'root',
-      password: 'Jairam123!',
-      database: 'PMActivity2'
-    },
-    {
-      host: '127.0.0.1',
-      port: 3306,
-      user: 'root',
-      password: 'Jairam123!',
-      database: 'PMActivity2'
-    },
-    {
-      host: 'localhost',
-      port: 3307,
-      user: 'root',
-      password: 'rootpassword123',
-      database: 'PMActivity2'
+      user: 'drtravi',
+      password: process.env.DB_PASSWORD || '',
+      database: 'pmactivity2',
+      ssl: { rejectUnauthorized: false }
     }
   ];
 
@@ -38,12 +25,12 @@ async function testDatabase() {
       
       // Test if database exists
       const [databases] = await connection.query('SHOW DATABASES');
-      const dbExists = databases.some(db => db.Database === 'PMActivity2');
-      console.log(`📊 PMActivity2 database exists: ${dbExists ? '✅ YES' : '❌ NO'}`);
+      const dbExists = databases.some(db => db.Database === 'pmactivity2');
+      console.log(`📊 pmactivity2 database exists: ${dbExists ? '✅ YES' : '❌ NO'}`);
 
       if (dbExists) {
         // Test tables
-        await connection.query('USE PMActivity2');
+        await connection.query('USE pmactivity2');
         const [tables] = await connection.query('SHOW TABLES');
         console.log(`📋 Tables found: ${tables.length}`);
         

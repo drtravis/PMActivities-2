@@ -5,12 +5,13 @@ async function setupDatabase() {
   try {
     console.log('🔄 Connecting to MySQL...');
     
-    // Connect to MySQL without specifying a database
+    // Connect to MySQL without specifying a database - Standardized to activity-tracker-mysql
     const connection = await mysql.createConnection({
-      host: 'localhost',
-      port: 3307,
-      user: 'root',
-      password: 'rootpassword123',
+      host: 'activity-tracker-mysql.mysql.database.azure.com',
+      port: 3306,
+      user: 'drtravi',
+      password: process.env.DB_PASSWORD || '',
+      ssl: { rejectUnauthorized: false },
       multipleStatements: true
     });
 

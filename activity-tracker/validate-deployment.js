@@ -19,11 +19,11 @@ const CONFIG = {
     url: process.env.FRONTEND_URL || 'https://your-frontend-app.azurewebsites.net'
   },
   database: {
-    host: process.env.DB_HOST || 'your-mysql-server.mysql.database.azure.com',
+    host: process.env.DB_HOST || 'activity-tracker-mysql.mysql.database.azure.com',
     port: parseInt(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USERNAME || 'your-admin-user',
-    password: process.env.DB_PASSWORD || 'your-password',
-    database: process.env.DB_NAME || 'pmactivities'
+    user: process.env.DB_USERNAME || 'drtravi',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'pmactivity2'
   }
 };
 

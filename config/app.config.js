@@ -29,14 +29,14 @@ const config = {
     }
   },
 
-  // Database configuration - Updated to use PMActivity2
+  // Database configuration - Standardized to use activity-tracker-mysql server
   database: {
     type: 'mysql',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 3307,
-    username: process.env.DB_USERNAME || 'root',
-    password: process.env.DB_PASSWORD || 'rootpassword123',
-    database: process.env.DB_NAME || 'PMActivity2',
+    host: process.env.DB_HOST || 'activity-tracker-mysql.mysql.database.azure.com',
+    port: parseInt(process.env.DB_PORT) || 3306,
+    username: process.env.DB_USERNAME || 'drtravi',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'pmactivity2',
     synchronize: isDevelopment, // Only in development
     logging: isDevelopment,
     entities: ['dist/**/*.entity{.ts,.js}'],

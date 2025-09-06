@@ -40,7 +40,7 @@
 3. Fill in **Basics** tab:
    - **Subscription:** Your subscription
    - **Resource group:** `pmactivities-rg`
-   - **Server name:** `pmactivities-mysql-server` (must be globally unique)
+   - **Server name:** `activity-tracker-mysql` (standardized server name)
    - **Region:** `East US` (same as resource group)
    - **MySQL version:** `8.0`
    - **Workload type:** `Development`

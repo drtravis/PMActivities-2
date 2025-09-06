@@ -38,11 +38,11 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
     console.warn('No database configuration found. Using minimal offline config.');
     return {
       type: 'mysql',
-      host: 'localhost',
+      host: 'activity-tracker-mysql.mysql.database.azure.com',
       port: 3306,
-      username: 'root',
-      password: 'password',
-      database: 'PMActivity2',
+      username: 'drtravi',
+      password: '',
+      database: 'pmactivity2',
       entities: [],
       synchronize: false,
       logging: false,
@@ -98,11 +98,11 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   // Use centralized configuration with environment variable fallbacks
   return {
     type: dbConfig.type as any,
-    host: configService.get<string>('DB_HOST', dbConfig.host),
-    port: parseInt(configService.get<string>('DB_PORT') || dbConfig.port.toString()),
-    username: configService.get<string>('DB_USERNAME', dbConfig.username),
-    password: configService.get<string>('DB_PASSWORD', dbConfig.password),
-    database: configService.get<string>('DB_NAME', dbConfig.database),
+    host: configService.get<string>('DB_HOST', 'activity-tracker-mysql.mysql.database.azure.com'),
+    port: parseInt(configService.get<string>('DB_PORT') || '3306'),
+    username: configService.get<string>('DB_USERNAME', 'drtravi'),
+    password: configService.get<string>('DB_PASSWORD', ''),
+    database: configService.get<string>('DB_NAME', 'pmactivity2'),
     entities: [
       Organization,
       User,
