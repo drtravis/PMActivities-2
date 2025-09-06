@@ -9,7 +9,7 @@ on:
 env:
   AZURE_CONTAINER_APP_NAME: pmactivities-backend1
   AZURE_RESOURCE_GROUP: DefaultResourceGroup-null
-  AZURE_CONTAINER_REGISTRY: pmactivitiesacr
+  AZURE_CONTAINER_REGISTRY: pmactivtiesacr
   IMAGE_NAME: pmactivities-backend
 
 jobs:
@@ -66,16 +66,8 @@ jobs:
       run: |
         SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
 
+        # Update image only; keep environment variables configured in Azure Portal
         az containerapp update \
           --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA \
-          --set-env-vars \
-            NODE_ENV=production \
-            DB_HOST=activity-tracker-mysql.mysql.database.azure.com \
-            DB_PORT=3306 \
-            DB_USERNAME=drtravi \
-            DB_PASSWORD=Harith12! \
-            DB_DATABASE=pmactivity2 \
-            JWT_SECRET=super-secret-jwt-key-for-production-2024 \
-            CORS_ORIGIN=https://blue-mushroom-07499561e.2.azurestaticapps.net
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA

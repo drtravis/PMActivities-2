@@ -10,22 +10,40 @@ const fs = require('fs');
 const PORT = process.env.PORT || 3001;
 
 // Database configuration
+const useSsl = (process.env.DB_SSL ?? (process.env.NODE_ENV === 'production' ? 'true' : 'false')) === 'true';
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3306,
+  port: parseInt(process.env.DB_PORT || '3306', 10),
   user: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'pmactivity2',
   acquireTimeout: 60000,
   timeout: 60000,
-  reconnect: true
+  reconnect: true,
+  // Azure Database for MySQL requires SSL by default
+  ssl: useSsl ? { rejectUnauthorized: false } : undefined,
 };
 
 let dbPool;
 
 // Middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:3000');
+  const corsEnv = process.env.CORS_ORIGIN || 'http://localhost:3000';
+
+  if (corsEnv === '*') {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (corsEnv.includes(',')) {
+    const origins = corsEnv.split(',').map(o => o.trim());
+    const requestOrigin = req.headers.origin;
+    if (requestOrigin && origins.includes(requestOrigin)) {
+      res.header('Access-Control-Allow-Origin', requestOrigin);
+    } else {
+      res.header('Access-Control-Allow-Origin', origins[0] || 'http://localhost:3000');
+    }
+  } else {
+    res.header('Access-Control-Allow-Origin', corsEnv);
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -602,7 +620,7 @@ app.post('/api/auth/accept-invitation', async (req, res) => {
       organizationId: user.organization_id
     };
 
-    const access_token = jwt.sign(token_payload, JWT_SECRET, { expiresIn: '24h' });
+    const access_token = jwt.sign(token_payload, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
 
     res.json({
       access_token,
