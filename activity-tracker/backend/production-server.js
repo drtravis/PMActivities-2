@@ -657,10 +657,6 @@ app.post('/api/auth/create-organization', async (req, res) => {
     const connection = await dbPool.getConnection();
 
     try {
-      // Start transaction and temporarily disable foreign key checks
-      await connection.execute('START TRANSACTION');
-      await connection.execute('SET FOREIGN_KEY_CHECKS = 0');
-
       // Check if organization already exists
       const [existingOrg] = await connection.execute(
         'SELECT id FROM organizations WHERE name = ?',
@@ -668,8 +664,6 @@ app.post('/api/auth/create-organization', async (req, res) => {
       );
 
       if (existingOrg.length > 0) {
-        await connection.execute('ROLLBACK');
-        await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
         connection.release();
         return res.status(400).json({ error: 'Organization with this name already exists' });
       }
@@ -681,8 +675,6 @@ app.post('/api/auth/create-organization', async (req, res) => {
       );
 
       if (existingUser.length > 0) {
-        await connection.execute('ROLLBACK');
-        await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
         connection.release();
         return res.status(400).json({ error: 'User with this email already exists' });
       }
@@ -696,10 +688,10 @@ app.post('/api/auth/create-organization', async (req, res) => {
       const [orgUuidResult] = await connection.execute('SELECT UUID() as id');
       const orgId = orgUuidResult[0].id;
 
-      // Create organization first (with created_by as the user we're about to create)
+      // Create organization first (without created_by to avoid foreign key constraint)
       await connection.execute(
-        'INSERT INTO organizations (id, name, created_by, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())',
-        [orgId, organizationName, userId]
+        'INSERT INTO organizations (id, name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())',
+        [orgId, organizationName]
       );
 
       // Create admin user with organization_id
@@ -708,9 +700,11 @@ app.post('/api/auth/create-organization', async (req, res) => {
         [userId, adminEmail, adminName, hashedPassword, 'ADMIN', orgId]
       );
 
-      // Re-enable foreign key checks and commit transaction
-      await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
-      await connection.execute('COMMIT');
+      // Update organization with created_by now that user exists
+      await connection.execute(
+        'UPDATE organizations SET created_by = ? WHERE id = ?',
+        [userId, orgId]
+      );
 
       connection.release();
 
@@ -729,8 +723,6 @@ app.post('/api/auth/create-organization', async (req, res) => {
         access_token
       });
     } catch (dbError) {
-      await connection.execute('ROLLBACK');
-      await connection.execute('SET FOREIGN_KEY_CHECKS = 1');
       connection.release();
       console.error('Database error in create-organization:', dbError);
       throw dbError;
