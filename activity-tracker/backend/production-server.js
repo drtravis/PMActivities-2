@@ -20,7 +20,6 @@ const dbConfig = {
   // MySQL2 pool configuration
   connectionLimit: 10,
   queueLimit: 0,
-  acquireTimeout: 60000,
   // Azure Database for MySQL requires SSL by default
   ssl: useSsl ? { rejectUnauthorized: false } : undefined,
 };
@@ -109,6 +108,16 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Database query with timeout wrapper
+async function executeWithTimeout(connection, query, params = [], timeoutMs = 10000) {
+  return Promise.race([
+    connection.execute(query, params),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Query timeout')), timeoutMs)
+    )
+  ]);
+}
 
 // Initialize database
 async function initDatabase() {
