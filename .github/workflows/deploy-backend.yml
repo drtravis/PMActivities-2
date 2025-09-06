@@ -9,6 +9,8 @@ on:
 env:
   AZURE_CONTAINER_APP_NAME: pmactivities-backend1
   AZURE_RESOURCE_GROUP: DefaultResourceGroup-null
+  AZURE_CONTAINER_REGISTRY: pmactivitiesacr
+  IMAGE_NAME: pmactivities-backend
 
 jobs:
   build-and-deploy:
@@ -19,23 +21,47 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build Docker image
-      run: |
-        cd activity-tracker/backend
-        docker build -t pmactivities-backend:latest .
-
     - name: Log in to Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Build and deploy Container App
-      uses: azure/container-apps-deploy-action@v1
-      with:
-        containerAppName: ${{ env.AZURE_CONTAINER_APP_NAME }}
-        resourceGroup: ${{ env.AZURE_RESOURCE_GROUP }}
-        imageToBuild: activity-tracker/backend
-        dockerfilePath: activity-tracker/backend/Dockerfile
+    - name: Log in to Azure Container Registry
+      run: |
+        az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and push Docker image
+      run: |
+        cd activity-tracker/backend
+
+        # Get short commit SHA for tagging
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+
+        # Build and tag image
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA .
+        docker build -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest .
+
+        # Push to ACR
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+
+    - name: Deploy to Container App
+      run: |
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+
+        az containerapp update \
+          --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA \
+          --set-env-vars \
+            NODE_ENV=production \
+            DB_HOST=activity-tracker-mysql.mysql.database.azure.com \
+            DB_PORT=3306 \
+            DB_USERNAME=drtravi \
+            DB_PASSWORD=Harith12! \
+            DB_DATABASE=pmactivity2 \
+            JWT_SECRET=super-secret-jwt-key-for-production-2024 \
+            CORS_ORIGIN=https://blue-mushroom-07499561e.2.azurestaticapps.net
