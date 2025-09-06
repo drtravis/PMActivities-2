@@ -25,6 +25,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: https://pmactivities-backend1.icyhill-61db6701.westus2.azurecontainerapps.io
           NODE_ENV: production
+          NPM_CONFIG_PRODUCTION: "false"
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLUE_MUSHROOM_07499561E }}
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
