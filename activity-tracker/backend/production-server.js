@@ -447,17 +447,40 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Add missing default-password endpoint
+app.get('/api/auth/default-password', authenticateToken, async (req, res) => {
+  try {
+    // Only admins and project managers can get default password
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'PROJECT_MANAGER') {
+      return res.status(403).json({ error: 'Only administrators and project managers can access default password' });
+    }
+
+    res.json({ password: 'Password123!' });
+  } catch (error) {
+    console.error('Get default password error:', error);
+    res.status(500).json({ error: 'Failed to get default password' });
+  }
+});
+
 app.post('/api/auth/invite', authenticateToken, async (req, res) => {
   let connection;
   try {
     const { email, name, role, projectIds } = req.body;
 
+    // Enhanced debug logging
+    console.log('=== INVITE USER REQUEST ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('User from token:', JSON.stringify(req.user, null, 2));
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+
     if (!email || !name || !role) {
+      console.log('❌ Missing required fields:', { email: !!email, name: !!name, role: !!role });
       return res.status(400).json({ error: 'Email, name, and role are required' });
     }
 
     // Only admins and project managers can invite users
     if (req.user.role !== 'ADMIN' && req.user.role !== 'PROJECT_MANAGER') {
+      console.log('Permission denied. User role:', req.user.role);
       return res.status(403).json({ error: 'Only administrators and project managers can invite users' });
     }
 
