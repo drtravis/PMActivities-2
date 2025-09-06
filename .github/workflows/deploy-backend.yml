@@ -48,6 +48,20 @@ jobs:
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA
         docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
 
+
+    - name: Configure ACR credentials for Container App
+      run: |
+        ACR_SERVER="${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io"
+        ACR_USERNAME=$(az acr credential show --name ${{ env.AZURE_CONTAINER_REGISTRY }} --query username -o tsv)
+        ACR_PASSWORD=$(az acr credential show --name ${{ env.AZURE_CONTAINER_REGISTRY }} --query passwords[0].value -o tsv)
+
+        az containerapp registry set \
+          --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --server "$ACR_SERVER" \
+          --username "$ACR_USERNAME" \
+          --password "$ACR_PASSWORD"
+
     - name: Deploy to Container App
       run: |
         SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
