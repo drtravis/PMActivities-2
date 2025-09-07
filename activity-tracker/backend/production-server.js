@@ -128,6 +128,8 @@ const authenticateToken = (req, res, next) => {
     req.user = user;
     next();
   });
+};
+
 // Helper: record task activity
 async function recordTaskActivity(connection, { taskId, action, field = null, oldValue = null, newValue = null, performedBy }) {
   try {
@@ -139,8 +141,6 @@ async function recordTaskActivity(connection, { taskId, action, field = null, ol
     console.error('Failed to record task activity:', e.message);
   }
 }
-
-};
 
 // Database query with timeout wrapper
 async function executeWithTimeout(connection, query, params = [], timeoutMs = 10000) {
@@ -319,6 +319,18 @@ async function initDatabase() {
 
       // Update existing users to be active by default
       await connection.execute(`UPDATE users SET is_active = TRUE WHERE is_active IS NULL`);
+
+      // Add preferences JSON column if missing
+      if (!userColumnNames.includes('preferences')) {
+        try {
+          await connection.execute(`ALTER TABLE users ADD COLUMN preferences JSON NULL`);
+          console.log('Added preferences column to users table');
+        } catch (error) {
+          if (!String(error.message || '').includes('Duplicate column name')) {
+            console.log('Preferences column might already exist or error adding:', error.message);
+          }
+        }
+      }
 
       // Update role enum to include PMO if not already present
       try {
@@ -1117,7 +1129,12 @@ app.get('/api/users/:id/preferences', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const prefs = target.preferences ? JSON.parse(target.preferences) : {};
+    let prefs = {};
+    try {
+      prefs = target.preferences ? JSON.parse(target.preferences) : {};
+    } catch (_e) {
+      prefs = {};
+    }
     connection.release();
     return res.json(prefs);
   } catch (error) {
@@ -1146,7 +1163,12 @@ app.patch('/api/users/me/preferences', authenticateToken, async (req, res) => {
     }
 
     // Merge preferences (JSON merge)
-    const current = userRows[0].preferences ? JSON.parse(userRows[0].preferences) : {};
+    let current = {};
+    try {
+      current = userRows[0].preferences ? JSON.parse(userRows[0].preferences) : {};
+    } catch (_e) {
+      current = {};
+    }
     const merged = { ...current, ...prefs };
 
     await connection.execute(`
@@ -1163,6 +1185,34 @@ app.patch('/api/users/me/preferences', authenticateToken, async (req, res) => {
   }
 });
 
+// Task history endpoint
+app.get('/api/tasks/:id/history', authenticateToken, async (req, res) => {
+  const { id } = req.params; let connection;
+  try {
+    connection = await dbPool.getConnection();
+
+    const [rows] = await connection.execute(`
+      SELECT action, field, old_value, new_value, performed_by, created_at
+      FROM task_activities
+      WHERE task_id = ?
+      ORDER BY created_at DESC
+    `, [id]);
+    connection.release();
+
+    return res.json(rows.map(r => ({
+      action: r.action,
+      field: r.field,
+      oldValue: r.old_value,
+      newValue: r.new_value,
+      performedBy: r.performed_by,
+      createdAt: r.created_at
+    })));
+  } catch (error) {
+    if (connection) connection.release();
+    console.error('List task history error:', error);
+    return res.status(500).json({ error: 'Failed to list task history' });
+  }
+});
 
 // Activities endpoints
 app.get('/api/activities', authenticateToken, async (req, res) => {
