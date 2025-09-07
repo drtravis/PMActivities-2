@@ -96,7 +96,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative">
+      {/* Floating Back to Demo Button */}
+      <div className="fixed top-6 left-6 z-50">
+        <button
+          onClick={() => router.push('/demo')}
+          className="demo-back-button group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-500 hover:scale-110 hover:-translate-y-1"
+        >
+          {/* Glowing Background Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 rounded-full blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* Arrow Icon */}
+          <div className="relative z-10 flex items-center gap-3">
+            <svg
+              className="w-6 h-6 transform group-hover:scale-125 transition-transform duration-300"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            <span className="text-sm font-bold tracking-wide">Back to Demo</span>
+          </div>
+
+          {/* Ripple Effect */}
+          <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:animate-ping"></div>
+        </button>
+      </div>
+
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
