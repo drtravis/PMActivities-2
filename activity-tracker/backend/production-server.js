@@ -456,7 +456,7 @@ app.get('/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    version: '2025-09-07-comments-fix-deployed'
+    version: '2025-09-07-comments-working'
   });
 });
 
