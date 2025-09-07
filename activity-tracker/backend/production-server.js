@@ -1649,23 +1649,6 @@ app.get('/api/tasks/:id/activities', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to list task activities' });
   }
 });
-
-      SET status = 'in_progress', updated_at = NOW()
-      WHERE id = ? AND organization_id = ?
-    `, [id, req.user.organizationId]);
-
-    connection.release();
-
-    res.json({
-      message: 'Task started successfully',
-      status: 'in_progress'
-    });
-  } catch (error) {
-    console.error('Start task error:', error);
-    res.status(500).json({ error: 'Failed to start task' });
-  }
-});
-
 // Get task by ID
 app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
   try {
