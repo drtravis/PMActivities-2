@@ -460,6 +460,18 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test endpoint for comments (no auth required)
+app.get('/test-comments', (req, res) => {
+  res.json({
+    message: 'Comments endpoints are available',
+    endpoints: [
+      'GET /api/tasks/:id/comments',
+      'POST /api/tasks/:id/comments'
+    ],
+    version: '2025-09-07-comments-fix'
+  });
+});
+
 // Database test
 app.get('/db-test', async (req, res) => {
   try {
