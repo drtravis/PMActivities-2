@@ -66,8 +66,14 @@ jobs:
       run: |
         SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
 
-        # Update image only; keep environment variables configured in Azure Portal
+        # Force update with restart and revision creation
         az containerapp update \
           --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA \
+          --revision-suffix $SHORT_SHA
+
+        # Force restart to ensure new image is pulled
+        az containerapp restart \
+          --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
