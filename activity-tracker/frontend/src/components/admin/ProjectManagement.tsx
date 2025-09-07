@@ -22,7 +22,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'pm' | 'pmo' | 'member';
+  role: 'admin' | 'pm' | 'pmo' | 'member';
   status: 'active' | 'inactive';
   projectIds: string[];
   tempPassword?: string;
@@ -56,7 +56,7 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
   const [userForm, setUserForm] = useState({
     name: '',
     email: '',
-    role: 'member' as 'pm' | 'pmo' | 'member',
+    role: 'member' as 'admin' | 'pm' | 'pmo' | 'member',
     projectId: ''
   });
 
@@ -67,6 +67,16 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
 
   // Default password is fixed on backend, expose for display
   const [defaultPassword, setDefaultPassword] = useState<string>('');
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'pmo': return 'bg-purple-100 text-purple-800';
+      case 'pm': return 'bg-blue-100 text-blue-800';
+      case 'member': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const load = async () => {
     try {
@@ -95,15 +105,25 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
       })));
-      setUsers(usersData.map((u: any) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        role: u.role === 'project_manager' ? 'pm' : (u.role === 'pmo' ? 'pmo' : 'member'),
-        status: u.isActive ? 'active' : 'inactive',
-        projectIds: u.projects?.map((p: any) => p.id) || [],
-        createdAt: u.createdAt,
-      })));
+      setUsers(usersData.map((u: any) => {
+        const backendRole = (u.role || '').toLowerCase();
+        const role = backendRole === 'admin'
+          ? 'admin'
+          : backendRole === 'pmo'
+          ? 'pmo'
+          : backendRole === 'project_manager'
+          ? 'pm'
+          : 'member';
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role,
+          status: u.isActive !== false ? 'active' : 'inactive',
+          projectIds: u.projects?.map((p: any) => p.id) || [],
+          createdAt: u.createdAt,
+        };
+      }));
       setDefaultPassword(pwd.password);
     } catch (error) {
       console.error('❌ ProjectManagement: Failed to load data:', error);
@@ -151,18 +171,21 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
   };
 
   const handleCreateUser = async () => {
-    if (!userForm.name.trim() || !userForm.email.trim() || (userForm.role !== 'pmo' && !userForm.projectId)) {
+    if (!userForm.name.trim() || !userForm.email.trim() || (userForm.role !== 'pmo' && userForm.role !== 'admin' && !userForm.projectId)) {
       alert('Please fill in all required fields');
       return;
     }
 
     try {
-      const role = userForm.role === 'pm' ? 'project_manager' : (userForm.role === 'pmo' ? 'pmo' : 'member');
+      const role = userForm.role === 'admin' ? 'admin' :
+                   userForm.role === 'pm' ? 'project_manager' :
+                   userForm.role === 'pmo' ? 'pmo' :
+                   'member';
       const created = await authAPI.inviteUser({
         email: userForm.email,
         name: userForm.name,
         role,
-        projectIds: userForm.role === 'pmo' ? undefined : [userForm.projectId],
+        projectIds: userForm.role === 'pmo' || userForm.role === 'admin' ? undefined : [userForm.projectId],
       });
 
       const mappedUser: User = {
@@ -171,7 +194,7 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
         email: created.email,
         role: userForm.role,
         status: created.isActive ? 'active' : 'inactive',
-        projectIds: [userForm.projectId],
+        projectIds: userForm.role === 'pmo' || userForm.role === 'admin' ? [] : [userForm.projectId],
         tempPassword: defaultPassword,
         createdAt: created.createdAt,
       };
@@ -315,7 +338,7 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
             const updatedProject = { ...project };
             if (user.role === 'pm' && !project.pmIds.includes(user.id)) {
               updatedProject.pmIds = [...project.pmIds, user.id];
-            } else if (user.role === 'member' && !project.memberIds.includes(user.id)) {
+            } else if ((user.role === 'member' || user.role === 'admin') && !project.memberIds.includes(user.id)) {
               updatedProject.memberIds = [...project.memberIds, user.id];
             }
             updatedProject.updatedAt = new Date().toISOString();
@@ -370,13 +393,7 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
     }
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'pm': return 'bg-blue-100 text-blue-800';
-      case 'member': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+
 
   return (
     <div className="p-6">
@@ -862,18 +879,19 @@ export function ProjectManagement({ onChange }: { onChange?: () => void }) {
                   value={userForm.role}
                   onChange={(e) => setUserForm(prev => ({
                     ...prev,
-                    role: e.target.value as 'pm' | 'pmo' | 'member',
-                    projectId: e.target.value === 'pmo' ? '' : prev.projectId,
+                    role: e.target.value as 'admin' | 'pm' | 'pmo' | 'member',
+                    projectId: e.target.value === 'pmo' || e.target.value === 'admin' ? '' : prev.projectId,
                   }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="member">Member</option>
                   <option value="pm">Project Manager</option>
                   <option value="pmo">PMO</option>
+                  <option value="admin">Administrator</option>
                 </select>
               </div>
               
-              {userForm.role !== 'pmo' && (
+              {userForm.role !== 'pmo' && userForm.role !== 'admin' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Project</label>
                   <select

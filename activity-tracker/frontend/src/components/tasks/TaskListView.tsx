@@ -236,10 +236,17 @@ export const TaskListView: React.FC<TaskListViewProps> = ({
                     {/* Task Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                        <div className="flex-1 min-w-0 group relative">
+                          <h4
+                            className="text-sm font-medium text-gray-900 truncate cursor-pointer"
+                            title={task.title}
+                          >
                             {task.title}
                           </h4>
+                          {/* Tooltip on hover */}
+                          <div className="absolute left-0 top-full mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg z-50 whitespace-normal max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                            {task.title}
+                          </div>
                           <div className="flex items-center space-x-4 mt-1">
                             {/* Status */}
                             <div className="flex items-center space-x-1">

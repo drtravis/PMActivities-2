@@ -103,7 +103,7 @@ const SortableTableRow: React.FC<SortableTableRowProps> = ({
       style={{
         ...style,
         display: 'grid',
-        gridTemplateColumns: '32px 1fr 120px 100px 70px 100px 90px',
+        gridTemplateColumns: '32px minmax(200px, 2fr) 120px 100px 70px 100px 90px',
         alignItems: 'center'
       }}
       {...attributes}
@@ -134,11 +134,20 @@ const SortableTableRow: React.FC<SortableTableRowProps> = ({
         </div>
       </div>
 
-      {/* Task Name */}
+      {/* Task Name with Tooltip */}
       <div className="flex items-center space-x-1.5 px-1.5 border-r border-gray-200">
-        <h4 className="text-xs font-medium text-gray-900 truncate hover:text-blue-600 cursor-pointer flex-1">
-          {activity.title}
-        </h4>
+        <div className="flex-1 min-w-0 group relative">
+          <h4
+            className="text-xs font-medium text-gray-900 truncate hover:text-blue-600 cursor-pointer"
+            title={activity.title}
+          >
+            {activity.title}
+          </h4>
+          {/* Tooltip on hover */}
+          <div className="absolute left-0 top-full mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg z-50 whitespace-normal max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+            {activity.title}
+          </div>
+        </div>
         <div className="flex items-center space-x-1 flex-shrink-0">
           {/* Comment Icon */}
           <button
@@ -813,7 +822,7 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
                 className="gap-0 divide-x divide-gray-200 px-2 py-1 items-center text-xs font-medium text-gray-600 uppercase tracking-wide min-h-[28px]"
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '32px 1fr 120px 100px 70px 100px 90px 80px',
+                  gridTemplateColumns: '32px minmax(200px, 2fr) 120px 100px 70px 100px 90px 80px',
                   alignItems: 'center'
                 }}
               >
@@ -881,7 +890,7 @@ const MyActivitiesRefactored = ({ assigneeId, viewerMode = 'self', titleOverride
                     className="gap-0 divide-x divide-gray-200 px-1.5 py-0.5 items-center text-xs font-medium text-gray-600 uppercase tracking-wide min-h-[24px]"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '32px 1fr 120px 100px 70px 100px 90px 80px',
+                      gridTemplateColumns: '32px minmax(200px, 2fr) 120px 100px 70px 100px 90px 80px',
                       alignItems: 'center'
                     }}
                   >

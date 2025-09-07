@@ -589,7 +589,18 @@ export const MultiBoardView: React.FC<MultiBoardViewProps> = ({
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-900">{task.title}</div>
+                    <div className="group relative">
+                      <div
+                        className="text-sm font-medium text-gray-900 truncate cursor-pointer"
+                        title={task.title}
+                      >
+                        {task.title}
+                      </div>
+                      {/* Tooltip on hover */}
+                      <div className="absolute left-0 top-full mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg z-50 whitespace-normal max-w-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                        {task.title}
+                      </div>
+                    </div>
                     {task.tags && task.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1">
                         {task.tags.map(tag => (

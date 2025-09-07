@@ -155,9 +155,18 @@ export const TasksWidget: React.FC<TasksWidgetProps> = ({ widget, onEdit, onRemo
               className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-150 cursor-pointer"
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-900 line-clamp-2 flex-1">
-                  {task.title}
-                </h4>
+                <div className="flex-1 min-w-0 group relative">
+                  <h4
+                    className="text-sm font-medium text-gray-900 line-clamp-2 cursor-pointer"
+                    title={task.title}
+                  >
+                    {task.title}
+                  </h4>
+                  {/* Tooltip on hover */}
+                  <div className="absolute left-0 top-full mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg z-50 whitespace-normal max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    {task.title}
+                  </div>
+                </div>
                 <span className={`text-xs font-medium ml-2 ${getPriorityColor(task.priority)}`}>
                   {task.priority}
                 </span>
