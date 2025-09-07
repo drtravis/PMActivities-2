@@ -50,7 +50,7 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12 px-4 sm:px-6 lg:px-8 relative">
       {/* Floating Back to Demo Button */}
       <div className="fixed top-6 left-6 z-50">
         <button
@@ -78,48 +78,48 @@ export default function SetupPage() {
       </div>
 
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">
             Create Organization
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Set up your organization and admin account
+          <p className="text-slate-400 text-sm">
+            Set up your organization and admin account to get started
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6 bg-slate-800/30 border border-cyan-500/30 rounded-xl p-8 backdrop-blur-sm" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="organizationName" className="block text-sm font-medium text-slate-300 mb-2">
                 Organization Name
               </label>
               <input
                 {...register('organizationName', { required: 'Organization name is required' })}
                 type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-4 py-3 bg-slate-700/50 border border-slate-600 placeholder-slate-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200 sm:text-sm"
                 placeholder="Enter organization name"
               />
               {errors.organizationName && (
-                <p className="mt-1 text-sm text-red-600">{errors.organizationName.message}</p>
+                <p className="mt-2 text-sm text-red-400">{errors.organizationName.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="adminName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="adminName" className="block text-sm font-medium text-slate-300 mb-2">
                 Admin Name
               </label>
               <input
                 {...register('adminName', { required: 'Admin name is required' })}
                 type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-4 py-3 bg-slate-700/50 border border-slate-600 placeholder-slate-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200 sm:text-sm"
                 placeholder="Enter admin name"
               />
               {errors.adminName && (
-                <p className="mt-1 text-sm text-red-600">{errors.adminName.message}</p>
+                <p className="mt-2 text-sm text-red-400">{errors.adminName.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="adminEmail" className="block text-sm font-medium text-slate-300 mb-2">
                 Admin Email
               </label>
               <input
@@ -131,16 +131,16 @@ export default function SetupPage() {
                   },
                 })}
                 type="email"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-4 py-3 bg-slate-700/50 border border-slate-600 placeholder-slate-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200 sm:text-sm"
                 placeholder="Enter admin email"
               />
               {errors.adminEmail && (
-                <p className="mt-1 text-sm text-red-600">{errors.adminEmail.message}</p>
+                <p className="mt-2 text-sm text-red-400">{errors.adminEmail.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="adminPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="adminPassword" className="block text-sm font-medium text-slate-300 mb-2">
                 Password
               </label>
               <input
@@ -152,16 +152,16 @@ export default function SetupPage() {
                   },
                 })}
                 type="password"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-4 py-3 bg-slate-700/50 border border-slate-600 placeholder-slate-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200 sm:text-sm"
                 placeholder="Enter password"
               />
               {errors.adminPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.adminPassword.message}</p>
+                <p className="mt-2 text-sm text-red-400">{errors.adminPassword.message}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
                 Confirm Password
               </label>
               <input
@@ -170,11 +170,11 @@ export default function SetupPage() {
                   validate: (value) => value === password || 'Passwords do not match',
                 })}
                 type="password"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none relative block w-full px-4 py-3 bg-slate-700/50 border border-slate-600 placeholder-slate-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 transition-all duration-200 sm:text-sm"
                 placeholder="Confirm password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="mt-2 text-sm text-red-400">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
@@ -183,16 +183,23 @@ export default function SetupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center py-3 px-6 border border-transparent text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/25"
             >
-              {isLoading ? 'Creating Organization...' : 'Create Organization'}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating Organization...
+                </div>
+              ) : (
+                'Create Organization'
+              )}
             </button>
           </div>
 
           <div className="text-center">
             <a
               href="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-cyan-400 hover:text-cyan-300 transition-colors duration-200"
             >
               Already have an account? Sign in
             </a>
