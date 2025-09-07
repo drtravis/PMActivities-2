@@ -40,6 +40,7 @@
 ### Branch Strategy:
 - **main**: Production-ready code (auto-deploys to Azure)
 - **development**: Active development branch
+- **windsurf**: Dedicated Windsurf development branch
 - **feature/***: Feature-specific branches
 
 ### Local Development:
@@ -47,14 +48,17 @@
 # Switch to development branch
 git checkout development
 
-# Create feature branch
+# Or switch to Windsurf branch for Windsurf-specific work
+git checkout windsurf
+
+# Create feature branch (optional)
 git checkout -b feature/your-feature-name
 
 # Work locally, test thoroughly
 npm run dev
 
-# When ready, merge to development
-git checkout development
+# When ready, merge to development or windsurf
+git checkout development  # or windsurf
 git merge feature/your-feature-name
 
 # Test on development branch

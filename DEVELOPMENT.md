@@ -36,9 +36,13 @@ npm run dev
 main (production)
 ├── v1.0.0 (tagged release)
 ├── development (active development)
-│   ├── feature/new-dashboard
-│   ├── feature/user-management
-│   └── bugfix/login-issue
+├── windsurf (Windsurf-specific development)
+│   ├── feature/windsurf-ui-changes
+│   └── feature/windsurf-components
+└── feature branches
+    ├── feature/new-dashboard
+    ├── feature/user-management
+    └── bugfix/login-issue
 ```
 
 ### Workflow:
