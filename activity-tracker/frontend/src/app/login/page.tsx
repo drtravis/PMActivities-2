@@ -98,7 +98,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12 px-4 sm:px-6 lg:px-8 relative">
       {/* Floating Home Button */}
-      <div className="fixed top-6 left-6 z-50">
+      <div className="fixed top-1/2 left-6 transform -translate-y-1/2 z-50">
         <button
           onClick={() => window.location.href = 'https://blue-mushroom-07499561e.2.azurestaticapps.net/'}
           className="demo-back-button group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 hover:scale-110 hover:-translate-y-1"
@@ -124,7 +124,7 @@ export default function LoginPage() {
       </div>
 
       {/* Floating Back to Demo Button */}
-      <div className="fixed top-20 left-6 z-50">
+      <div className="fixed top-6 left-6 z-50">
         <button
           onClick={() => router.push('/demo')}
           className="demo-back-button group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-500 hover:scale-110 hover:-translate-y-1"
