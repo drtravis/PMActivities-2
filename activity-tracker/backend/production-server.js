@@ -1089,6 +1089,81 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
   }
 });
 
+// User preferences endpoints
+// Get preferences for a user (self, or Admin/PM for others in same org)
+app.get('/api/users/:id/preferences', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const connection = await dbPool.getConnection();
+
+    // Ensure target user exists in same org
+    const [userRows] = await connection.execute(`
+      SELECT id, organization_id, role, preferences
+      FROM users
+      WHERE id = ? AND organization_id = ?
+    `, [id, req.user.organizationId]);
+
+    if (!Array.isArray(userRows) || userRows.length === 0) {
+      connection.release();
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Authorization: self or admin/PM can view
+    const target = userRows[0];
+    const isSelf = req.user.sub === id;
+    const isAdminOrPM = ['ADMIN', 'PROJECT_MANAGER'].includes(req.user.role);
+    if (!isSelf && !isAdminOrPM) {
+      connection.release();
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const prefs = target.preferences ? JSON.parse(target.preferences) : {};
+    connection.release();
+    return res.json(prefs);
+  } catch (error) {
+    console.error('Get user preferences error:', error);
+    return res.status(500).json({ error: 'Failed to get user preferences' });
+  }
+});
+
+// Update preferences for current user
+app.patch('/api/users/me/preferences', authenticateToken, async (req, res) => {
+  const meId = req.user.sub;
+  const prefs = req.body || {};
+  try {
+    const connection = await dbPool.getConnection();
+
+    // Ensure user exists in org
+    const [userRows] = await connection.execute(`
+      SELECT id, preferences
+      FROM users
+      WHERE id = ? AND organization_id = ?
+    `, [meId, req.user.organizationId]);
+
+    if (!Array.isArray(userRows) || userRows.length === 0) {
+      connection.release();
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Merge preferences (JSON merge)
+    const current = userRows[0].preferences ? JSON.parse(userRows[0].preferences) : {};
+    const merged = { ...current, ...prefs };
+
+    await connection.execute(`
+      UPDATE users
+      SET preferences = ?, updated_at = NOW()
+      WHERE id = ? AND organization_id = ?
+    `, [JSON.stringify(merged), meId, req.user.organizationId]);
+
+    connection.release();
+    return res.json(merged);
+  } catch (error) {
+    console.error('Update my preferences error:', error);
+    return res.status(500).json({ error: 'Failed to update preferences' });
+  }
+});
+
+
 // Activities endpoints
 app.get('/api/activities', authenticateToken, async (req, res) => {
   try {
