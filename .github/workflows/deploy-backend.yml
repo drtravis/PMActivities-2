@@ -66,13 +66,8 @@ jobs:
       run: |
         SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
 
-        # Update image and force restart
+        # Update image - this automatically creates a new revision
         az containerapp update \
           --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
           --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:$SHORT_SHA
-
-        # Force restart to ensure new image is pulled
-        az containerapp restart \
-          --name ${{ env.AZURE_CONTAINER_APP_NAME }} \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
