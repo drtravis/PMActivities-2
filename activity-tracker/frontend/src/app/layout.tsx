@@ -19,6 +19,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Activity Tracker',
   description: 'Track and manage your activities',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

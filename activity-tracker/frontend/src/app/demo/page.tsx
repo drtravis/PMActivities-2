@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { authAPI } from '@/lib/api';
+import { useAuthStore } from '@/lib/store';
+import { toast } from 'react-hot-toast';
 
 interface UserRole {
   id: string;
@@ -125,40 +128,65 @@ function RoleCard({ user, onLogin, loading }: RoleCardProps) {
 export default function DemoPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const handleQuickLogin = async (user: UserRole) => {
     setLoading(user.id);
-    
-    try {
-      // Simulate login API call
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: user.email,
-          password: user.password,
-        }),
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Store auth token if provided
-        if (data.token) {
-          localStorage.setItem('authToken', data.token);
-        }
-        
-        // Redirect to appropriate dashboard
-        router.push(user.redirectPath);
-      } else {
-        console.error('Login failed:', response.statusText);
-        alert(`Login failed for ${user.title}. Please try again.`);
+    try {
+      // Use the proper authentication API
+      const response = await authAPI.login(user.email, user.password);
+      console.log('Demo login response:', response);
+
+      // Handle token from backend (returns 'token')
+      const token = response.token;
+      const userData = response.user;
+
+      if (!token || !userData) {
+        throw new Error('Invalid response from server');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert(`Error logging in as ${user.title}. Please try again.`);
+
+      // Use the auth store to handle login
+      login(token, userData);
+      toast.success(`Logged in as ${user.title}!`);
+
+      // Redirect to appropriate dashboard based on user role
+      const role = userData.role?.toLowerCase();
+      let redirectPath = user.redirectPath;
+
+      // Map backend roles to frontend paths
+      switch (role) {
+        case 'admin':
+          redirectPath = '/admin';
+          break;
+        case 'pmo':
+          redirectPath = '/pmo';
+          break;
+        case 'project_manager':
+          redirectPath = '/pm';
+          break;
+        case 'member':
+          redirectPath = '/member';
+          break;
+        default:
+          redirectPath = '/dashboard';
+      }
+
+      // Small delay to show success message
+      setTimeout(() => {
+        router.push(redirectPath);
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Demo login error:', error);
+      const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message;
+      const friendlyMessage =
+        msg === 'No account found with this email' ? `No account found for ${user.title}` :
+        msg === 'Incorrect password' ? `Incorrect password for ${user.title}` :
+        msg === 'Account is deactivated. Please contact your administrator.' ? `${user.title} account is deactivated` :
+        `Login failed for ${user.title}. Please try again.`;
+
+      toast.error(friendlyMessage);
     } finally {
       setLoading(null);
     }
