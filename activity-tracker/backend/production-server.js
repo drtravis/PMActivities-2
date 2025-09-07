@@ -1493,6 +1493,18 @@ app.patch('/api/tasks/:id/start', authenticateToken, async (req, res) => {
 
     const [result] = await connection.execute(`
       UPDATE tasks
+      SET status = 'in_progress', updated_at = NOW()
+      WHERE id = ? AND organization_id = ?
+    `, [id, req.user.organizationId]);
+
+    connection.release();
+    return res.json({ message: 'Task started' });
+  } catch (error) {
+    console.error('Start task error:', error);
+    return res.status(500).json({ error: 'Failed to start task' });
+  }
+});
+
 // Task attachments endpoints
 app.post('/api/tasks/:id/attachments', authenticateToken, uploadTaskAttachment.single('file'), async (req, res) => {
   const { id } = req.params;
@@ -1525,6 +1537,9 @@ app.post('/api/tasks/:id/attachments', authenticateToken, uploadTaskAttachment.s
     if (connection) connection.release();
     console.error('Upload attachment error:', error);
     res.status(500).json({ error: 'Failed to upload attachment' });
+
+  }
+});
 
 // Task comments endpoints
 app.get('/api/tasks/:id/comments', authenticateToken, async (req, res) => {
@@ -1599,8 +1614,7 @@ app.post('/api/tasks/:id/comments', authenticateToken, async (req, res) => {
   }
 });
 
-  }
-});
+
 
 app.get('/api/tasks/:id/attachments', authenticateToken, async (req, res) => {
   const { id } = req.params; let connection;
