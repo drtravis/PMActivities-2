@@ -1192,21 +1192,53 @@ app.get('/api/tasks/:id/history', authenticateToken, async (req, res) => {
     connection = await dbPool.getConnection();
 
     const [rows] = await connection.execute(`
-      SELECT action, field, old_value, new_value, performed_by, created_at
-      FROM task_activities
-      WHERE task_id = ?
-      ORDER BY created_at DESC
+      SELECT a.action, a.field, a.old_value, a.new_value, a.performed_by, a.created_at, u.name as actor_name
+      FROM task_activities a
+      LEFT JOIN users u ON u.id = a.performed_by
+      WHERE a.task_id = ?
+      ORDER BY a.created_at DESC
     `, [id]);
     connection.release();
 
-    return res.json(rows.map(r => ({
-      action: r.action,
-      field: r.field,
-      oldValue: r.old_value,
-      newValue: r.new_value,
-      performedBy: r.performed_by,
-      createdAt: r.created_at
-    })));
+    const data = rows.map(r => {
+      // Map action to changeType and human description
+      let changeType = 'updated';
+      switch (r.action) {
+        case 'created': changeType = 'created'; break;
+        case 'status_changed': changeType = 'status_changed'; break;
+        case 'priority_changed': changeType = 'priority_changed'; break;
+        case 'assigned': changeType = 'assigned'; break;
+        case 'commented': changeType = 'commented'; break;
+        case 'file_uploaded':
+        case 'attachment_added': changeType = 'file_uploaded'; break;
+        case 'started': changeType = 'status_changed'; break;
+        default: changeType = 'updated';
+      }
+
+      let description = '';
+      if (r.action === 'created') description = `${r.actor_name || 'User'} created the task`;
+      else if (r.action === 'status_changed' || r.action === 'started') description = `${r.actor_name || 'User'} changed status from ${r.old_value ?? ''} to ${r.new_value ?? ''}`;
+      else if (r.action === 'priority_changed') description = `${r.actor_name || 'User'} changed priority from ${r.old_value ?? ''} to ${r.new_value ?? ''}`;
+      else if (r.action === 'assigned') description = `${r.actor_name || 'User'} updated assignment`;
+      else if (r.action === 'commented') description = `${r.actor_name || 'User'} added a comment`;
+      else if (r.action === 'file_uploaded' || r.action === 'attachment_added') description = `${r.actor_name || 'User'} uploaded ${r.new_value ?? 'a file'}`;
+      else description = `${r.actor_name || 'User'} updated the task`;
+
+      const changes = (r.field || r.old_value || r.new_value)
+        ? [{ field: r.field, oldValue: r.old_value, newValue: r.new_value }]
+        : [];
+
+      return {
+        id: `${id}-${r.created_at}-${r.action}`,
+        changeType,
+        description,
+        changes,
+        actor: { id: r.performed_by, name: r.actor_name || 'User' },
+        createdAt: r.created_at
+      };
+    });
+
+    return res.json(data);
   } catch (error) {
     if (connection) connection.release();
     console.error('List task history error:', error);
@@ -1647,17 +1679,30 @@ app.post('/api/tasks/:id/attachments', authenticateToken, uploadTaskAttachment.s
       return res.status(404).json({ error: 'Task not found' });
     }
 
+    // Create id upfront for consistent return
+    const [uuidRes] = await connection.execute('SELECT UUID() as id');
+    const attachmentId = uuidRes[0].id;
+
     await connection.execute(`
       INSERT INTO task_attachments (id, task_id, file_name, file_path, mime_type, size, uploaded_by, created_at)
-      VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW())
-    `, [id, file.originalname, file.filename, file.mimetype, file.size, req.user.sub]);
+      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+    `, [attachmentId, id, file.originalname, file.filename, file.mimetype, file.size, req.user.sub]);
 
     // Log activity
-    await recordTaskActivity(connection, { taskId: id, action: 'attachment_added', field: 'attachment', newValue: file.originalname, performedBy: req.user.sub });
+    await recordTaskActivity(connection, { taskId: id, action: 'file_uploaded', field: 'attachment', newValue: file.originalname, performedBy: req.user.sub });
 
     connection.release();
 
-    res.json({ message: 'Attachment uploaded', file: { name: file.originalname, url: `/uploads/task_attachments/${file.filename}`, size: file.size, type: file.mimetype } });
+    res.json({
+      id: attachmentId,
+      filename: file.filename,
+      originalName: file.originalname,
+      fileSize: file.size,
+      mimeType: file.mimetype,
+      downloadUrl: `/api/tasks/${id}/attachments/${attachmentId}/download`,
+      uploadedBy: { id: req.user.sub, name: req.user.name || 'You' },
+      createdAt: new Date().toISOString()
+    });
   } catch (error) {
     if (connection) connection.release();
     console.error('Upload attachment error:', error);
@@ -1746,11 +1791,22 @@ app.get('/api/tasks/:id/attachments', authenticateToken, async (req, res) => {
   try {
     connection = await dbPool.getConnection();
     const [rows] = await connection.execute(`
-      SELECT id, file_name, file_path, mime_type, size, uploaded_by, created_at
-      FROM task_attachments WHERE task_id = ? ORDER BY created_at DESC
+      SELECT a.id, a.file_name, a.file_path, a.mime_type, a.size, a.uploaded_by, a.created_at, u.name as uploader_name
+      FROM task_attachments a
+      LEFT JOIN users u ON u.id = a.uploaded_by
+      WHERE a.task_id = ? ORDER BY a.created_at DESC
     `, [id]);
     connection.release();
-    res.json(rows.map(r => ({ id: r.id, name: r.file_name, url: `/uploads/task_attachments/${r.file_path}`, type: r.mime_type, size: r.size, uploadedBy: r.uploaded_by, createdAt: r.created_at })));
+    res.json(rows.map(r => ({
+      id: r.id,
+      filename: r.file_path,
+      originalName: r.file_name,
+      fileSize: r.size,
+      mimeType: r.mime_type,
+      downloadUrl: `/api/tasks/${id}/attachments/${r.id}/download`,
+      uploadedBy: { id: r.uploaded_by, name: r.uploader_name || 'Unknown' },
+      createdAt: r.created_at
+    })));
   } catch (error) {
     if (connection) connection.release();
     console.error('List attachments error:', error);

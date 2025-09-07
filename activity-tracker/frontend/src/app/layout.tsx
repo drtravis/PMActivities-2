@@ -29,6 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        {/* Tiny About link on top-left */}
+        <a href="/about" className="fixed top-1 left-2 text-[10px] text-gray-400 hover:text-gray-600 z-50" aria-label="About & Build Info">
+          about
+        </a>
         <SkipLink href="#main-content">Skip to main content</SkipLink>
         <NoSSR fallback={
           <div className="min-h-screen flex items-center justify-center">
