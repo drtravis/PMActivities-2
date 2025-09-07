@@ -193,7 +193,33 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative">
+      {/* Floating Home Button */}
+      <div className="fixed top-6 right-6 z-50">
+        <button
+          onClick={() => router.push('/')}
+          className="demo-back-button group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 hover:scale-110 hover:-translate-y-1"
+        >
+          {/* Glowing Background Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* Home Icon */}
+          <div className="relative z-10 flex items-center gap-3">
+            <svg
+              className="w-6 h-6 transform group-hover:scale-125 transition-transform duration-300"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            <span className="text-sm font-bold tracking-wide">Home</span>
+          </div>
+
+          {/* Ripple Effect */}
+          <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:animate-ping"></div>
+        </button>
+      </div>
+
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
         <header className="text-center mb-12">
@@ -256,32 +282,7 @@ export default function DemoPage() {
           </div>
         </div>
 
-        {/* Credentials Table */}
-        <div className="mt-12 bg-slate-800/30 rounded-lg p-6">
-          <h3 className="text-xl font-semibold mb-4 text-center text-cyan-400">Demo Credentials</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-600">
-                  <th className="text-left py-3 px-4 text-slate-300 font-semibold">Role</th>
-                  <th className="text-left py-3 px-4 text-slate-300 font-semibold">Email</th>
-                  <th className="text-left py-3 px-4 text-slate-300 font-semibold">Password</th>
-                </tr>
-              </thead>
-              <tbody>
-                {userRoles.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-700/50 hover:bg-slate-700/20">
-                    <td className="py-3 px-4 text-slate-300">{user.title}</td>
-                    <td className="py-3 px-4 text-slate-300">{user.email}</td>
-                    <td className="py-3 px-4 text-slate-300 font-mono text-xs bg-slate-700/30 rounded px-2 py-1">
-                      {user.password}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+
 
         {/* Footer Note */}
         <div className="text-center mt-8">
