@@ -1,15 +1,19 @@
-name: Deploy Backend with UUID Fix
+name: Deploy Backend with UUID Fix (DISABLED - use deploy-backend.yml instead)
 
 on:
+  # This workflow is disabled - use deploy-backend.yml instead
   workflow_dispatch:
-  push:
-    paths:
-      - 'activity-tracker/backend/**'
+    inputs:
+      disabled:
+        description: 'This workflow is disabled'
+        required: false
+        default: 'true'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+    if: false  # This workflow is disabled
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

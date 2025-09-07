@@ -1,22 +1,28 @@
-name: Trigger auto deployment for pmactivities-backend1
+name: Trigger auto deployment for pmactivities-backend1 (DISABLED - use deploy-backend.yml instead)
 
 # When this action will be executed
 on:
-  # Automatically trigger it when detected changes in repo
-  push:
-    branches: 
-      [ main ]
-    paths:
-    - '**'
-    - '.github/workflows/pmactivities-backend1-AutoDeployTrigger-d5f4eac3-342c-4ea9-8581-4a474c0669ff.yml'
+  # DISABLED - use deploy-backend.yml instead
+  # push:
+  #   branches:
+  #     [ main ]
+  #   paths:
+  #   - '**'
+  #   - '.github/workflows/pmactivities-backend1-AutoDeployTrigger-d5f4eac3-342c-4ea9-8581-4a474c0669ff.yml'
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      disabled:
+        description: 'This workflow is disabled'
+        required: false
+        default: 'true'
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
+    if: false  # This workflow is disabled - use deploy-backend.yml instead
+    permissions:
       id-token: write #This is required for requesting the OIDC JWT Token
       contents: read #Required when GH token is used to authenticate with private repo
 

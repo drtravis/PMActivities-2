@@ -419,6 +419,25 @@ async function initDatabase() {
         )
       `);
       console.log('Created task_attachments table');
+
+      // Create task_comments table
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS task_comments (
+          id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+          task_id VARCHAR(36) NOT NULL,
+          author_id VARCHAR(36) NOT NULL,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+          FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+          INDEX idx_task (task_id),
+          INDEX idx_author (author_id),
+          INDEX idx_created_at (created_at)
+        )
+      `);
+      console.log('Created task_comments table');
+
     } catch (error) {
       console.error('Error creating tasks table:', error.message);
     }
@@ -1493,6 +1512,80 @@ app.post('/api/tasks/:id/attachments', authenticateToken, uploadTaskAttachment.s
     if (connection) connection.release();
     console.error('Upload attachment error:', error);
     res.status(500).json({ error: 'Failed to upload attachment' });
+
+// Task comments endpoints
+app.get('/api/tasks/:id/comments', authenticateToken, async (req, res) => {
+  const { id } = req.params; let connection;
+  try {
+    connection = await dbPool.getConnection();
+    const [rows] = await connection.execute(`
+      SELECT c.id, c.content, c.created_at, c.updated_at, u.id as author_id, u.name as author_name, u.email as author_email
+      FROM task_comments c
+      JOIN users u ON u.id = c.author_id
+      WHERE c.task_id = ?
+      ORDER BY c.created_at DESC
+    `, [id]);
+    connection.release();
+    res.json(rows.map(r => ({
+      id: r.id,
+      content: r.content,
+      author: { id: r.author_id, name: r.author_name, email: r.author_email },
+      createdAt: r.created_at,
+      updatedAt: r.updated_at
+    })));
+  } catch (error) {
+    if (connection) connection.release();
+    console.error('List task comments error:', error);
+    res.status(500).json({ error: 'Failed to list task comments' });
+  }
+});
+
+app.post('/api/tasks/:id/comments', authenticateToken, async (req, res) => {
+  const { id } = req.params; const { content } = req.body; let connection;
+  if (!content || !content.trim()) return res.status(400).json({ error: 'Content is required' });
+  try {
+    connection = await dbPool.getConnection();
+
+    // Ensure task exists and user has access (assignee or creator). Keep it simple: check existence only
+    const [taskRows] = await connection.execute(`SELECT id, title FROM tasks WHERE id = ?`, [id]);
+    if (!Array.isArray(taskRows) || taskRows.length === 0) {
+      connection.release();
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const [result] = await connection.execute(`
+      INSERT INTO task_comments (id, task_id, author_id, content, created_at, updated_at)
+      VALUES (UUID(), ?, ?, ?, NOW(), NOW())
+    `, [id, req.user.sub, content.trim()]);
+
+    // Fetch the created comment with author info
+    const [rows] = await connection.execute(`
+      SELECT c.id, c.content, c.created_at, c.updated_at, u.id as author_id, u.name as author_name, u.email as author_email
+      FROM task_comments c
+      JOIN users u ON u.id = c.author_id
+      WHERE c.task_id = ? AND c.id = (SELECT id FROM task_comments WHERE task_id = ? ORDER BY created_at DESC LIMIT 1)
+    `, [id, id]);
+
+    // Log activity
+    await recordTaskActivity(connection, { taskId: id, action: 'commented', field: 'comment', newValue: content.trim(), performedBy: req.user.sub });
+
+    connection.release();
+
+    const r = Array.isArray(rows) && rows[0];
+    return res.status(201).json(r ? {
+      id: r.id,
+      content: r.content,
+      author: { id: r.author_id, name: r.author_name, email: r.author_email },
+      createdAt: r.created_at,
+      updatedAt: r.updated_at
+    } : { message: 'Comment added' });
+  } catch (error) {
+    if (connection) connection.release();
+    console.error('Create task comment error:', error);
+    res.status(500).json({ error: 'Failed to add task comment' });
+  }
+});
+
   }
 });
 

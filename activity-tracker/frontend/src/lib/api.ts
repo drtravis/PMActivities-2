@@ -246,8 +246,8 @@ export const tasksAPI = {
     const response = await api.get(`/api/tasks/${taskId}/comments`);
     return response.data;
   },
-  addComment: async (taskId: string, body: string) => {
-    const response = await api.post(`/api/tasks/${taskId}/comments`, { body });
+  addComment: async (taskId: string, content: string) => {
+    const response = await api.post(`/api/tasks/${taskId}/comments`, { content });
     return response.data;
   },
 

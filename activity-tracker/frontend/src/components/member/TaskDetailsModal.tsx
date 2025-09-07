@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { tasksAPI } from '@/lib/api';
 import { useStatus } from '@/contexts/StatusContext';
+import { toast } from 'react-hot-toast';
 
 
 interface Activity {
@@ -30,7 +31,7 @@ interface Activity {
 
 interface Comment {
   id: string;
-  body: string;
+  content: string;
   author: { name: string; id: string };
   createdAt: string;
   updatedAt: string;
@@ -90,7 +91,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     try {
       setLoading(true);
       const data = await tasksAPI.getComments(activity.taskId);
-      setComments(data);
+      // Ensure newest first on the client regardless of backend ordering
+      const sorted = [...data].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setComments(sorted);
     } catch (error) {
       console.error('Failed to load comments:', error);
     } finally {
@@ -119,15 +122,20 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !activity?.taskId) return;
+    if (!newComment.trim() || !activity?.taskId) {
+      return;
+    }
 
     try {
       const newCommentData = await tasksAPI.addComment(activity.taskId, newComment);
+      // Prepend the new comment so it appears immediately at the top
       setComments(prev => [newCommentData, ...prev]);
       setNewComment('');
       loadActivityLog(); // Refresh activity log
+      toast.success('Update posted');
     } catch (error) {
       console.error('Failed to add comment:', error);
+      toast.error('Failed to post update');
     }
   };
 
@@ -338,7 +346,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
                             <span className="font-medium text-gray-900">{comment.author.name}</span>
                             <span className="text-sm text-gray-500">{formatTimestamp(comment.createdAt)}</span>
                           </div>
-                          <p className="text-gray-700">{comment.body}</p>
+                          <p className="text-gray-700">{comment.content}</p>
                         </div>
                       </div>
                     </div>
