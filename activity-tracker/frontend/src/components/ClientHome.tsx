@@ -56,82 +56,87 @@ export default function ClientHome() {
   // Show welcome page for unauthenticated users
   if (showWelcome) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+        <div className="container mx-auto px-5 py-10 max-w-6xl">
+          {/* Header */}
+          <header className="text-center mb-16">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
               Activity Tracker
             </h1>
-            <p className="text-xl text-gray-600 mb-12">
+            <p className="text-xl text-slate-300 font-light">
               Streamline your project management and track activities with ease
             </p>
-            
-            <div className="grid md:grid-cols-2 gap-8 max-w-2xl mx-auto">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                  Existing User?
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Sign in to access your dashboard and manage your activities
-                </p>
-                <button
-                  onClick={() => router.push('/login')}
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Sign In
-                </button>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-                  New Organization?
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Set up a new organization and start managing your team's activities
-                </p>
-                <button
-                  onClick={() => router.push('/setup')}
-                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  Get Started
-                </button>
-              </div>
+          </header>
+
+          {/* Main Options */}
+          <div className="flex flex-wrap justify-center gap-8 mb-20">
+            {/* Existing User Card */}
+            <div className="bg-slate-800/50 border-2 border-cyan-500/30 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] transition-all duration-300 hover:border-cyan-400 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 backdrop-blur-sm">
+              <h2 className="text-2xl font-semibold mb-4 text-white">Existing User?</h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                Sign in to access your dashboard and manage your activities
+              </p>
+              <button
+                onClick={() => router.push('/login')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/30 min-w-[150px] uppercase tracking-wide text-sm"
+              >
+                Sign In
+              </button>
             </div>
-            
-            <div className="mt-16">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-8">
-                Key Features
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Activity Management</h4>
-                  <p className="text-gray-600">Create, assign, and track activities with detailed status updates</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Team Collaboration</h4>
-                  <p className="text-gray-600">Role-based access control for admins, project managers, and team members</p>
-                </div>
-                
-                <div className="text-center">
-                  <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Progress Tracking</h4>
-                  <p className="text-gray-600">Real-time reporting and analytics to monitor project progress</p>
-                </div>
+
+            {/* New Organization Card */}
+            <div className="bg-slate-800/50 border-2 border-cyan-500/30 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] transition-all duration-300 hover:border-cyan-400 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 backdrop-blur-sm">
+              <h2 className="text-2xl font-semibold mb-4 text-white">New Organization?</h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                Set up a new organization and start managing your team's activities
+              </p>
+              <button
+                onClick={() => router.push('/setup')}
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/30 min-w-[150px] uppercase tracking-wide text-sm"
+              >
+                Get Started
+              </button>
+            </div>
+
+            {/* Demo Card */}
+            <div className="bg-slate-800/50 border-2 border-cyan-500/30 rounded-2xl p-8 text-center min-w-[280px] max-w-[320px] transition-all duration-300 hover:border-cyan-400 hover:shadow-2xl hover:shadow-cyan-500/20 hover:-translate-y-2 backdrop-blur-sm">
+              <h2 className="text-2xl font-semibold mb-4 text-white">Demo</h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                Explore the platform with sample data and see how activity tracking works
+              </p>
+              <button
+                onClick={() => router.push('/demo')}
+                className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/30 min-w-[150px] uppercase tracking-wide text-sm"
+              >
+                Try Demo
+              </button>
+            </div>
+          </div>
+
+          {/* Key Features Section */}
+          <div className="text-center">
+            <h2 className="text-3xl font-semibold mb-12 text-white">Key Features</h2>
+            <div className="flex flex-wrap justify-center gap-16 max-w-4xl mx-auto">
+              <div className="text-center flex-1 min-w-[250px]">
+                <div className="text-4xl mb-4">📄</div>
+                <h3 className="text-lg font-semibold text-white mb-3">Activity Management</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Create, assign, and track activities with detailed status updates
+                </p>
+              </div>
+              <div className="text-center flex-1 min-w-[250px]">
+                <div className="text-4xl mb-4">👥</div>
+                <h3 className="text-lg font-semibold text-white mb-3">Team Collaboration</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Role-based access control for admins, project managers, and team members
+                </p>
+              </div>
+              <div className="text-center flex-1 min-w-[250px]">
+                <div className="text-4xl mb-4">📊</div>
+                <h3 className="text-lg font-semibold text-white mb-3">Progress Tracking</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Real-time reporting and analytics to monitor project progress
+                </p>
               </div>
             </div>
           </div>
