@@ -78,43 +78,26 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
           {/* Left side - Organization branding */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              {organization?.logoUrl ? (
-                <div
-                  className="rounded-md border border-gray-200 bg-white overflow-hidden"
-                  style={{
-                    width: (organization as any)?.settings?.logoWidth ?? 400,
-                    height: (organization as any)?.settings?.logoHeight ?? 100,
+              {/* Always show NIHA logo for demo/production */}
+              <div className="w-40 h-14 relative mr-2 flex items-center justify-center">
+                <img
+                  src="/images/niha-logo.png"
+                  alt="NIHA Technologies Logo"
+                  className="max-w-full max-h-full object-contain"
+                  onError={(e) => {
+                    console.error('Header logo failed to load');
+                    // Hide the logo container if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    if (target.parentElement) {
+                      target.parentElement.style.display = 'none';
+                    }
                   }}
-                >
-                  <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization?.logoUrl}`}
-                    alt={organization?.name || 'Organization'}
-                    className="w-full h-full object-cover"
-                    style={{
-                      objectPosition: `${(organization as any)?.settings?.logoPositionX ?? 50}% ${
-                        (organization as any)?.settings?.logoPositionY ?? 50
-                      }%`,
-                      transform: `scale(${((organization as any)?.settings?.logoScale ?? 100) / 100})`,
-                      transformOrigin: 'center',
-                    }}
-                  />
-                </div>
-              ) : (
-                <div
-                  className="bg-blue-600 rounded-md flex items-center justify-center text-white font-semibold"
-                  style={{
-                    width: (organization as any)?.settings?.logoWidth ?? 400,
-                    height: (organization as any)?.settings?.logoHeight ?? 100,
-                  }}
-                >
-                  <span className="text-3xl">
-                    {organization?.name?.charAt(0) || 'O'}
-                  </span>
-                </div>
-              )}
+                  onLoad={() => console.log('Header logo loaded successfully')}
+                />
+              </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {organization?.name || 'Organization'}
+                  {organization?.name || 'NIHA TECHNOLOGIES'}
                 </h1>
                 {displayProjectName && (
                   <h2 className="text-lg font-medium text-gray-600 -mt-1">

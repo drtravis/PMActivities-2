@@ -313,31 +313,23 @@ export function OrganizationSettings() {
         <h3 className="text-lg font-medium text-gray-900 mb-4">Organization Logo</h3>
         <div className="flex items-start space-x-6">
           <div className="flex-shrink-0">
-            {(logoPreview || organization.logoUrl) ? (
-              <div className="relative rounded-md border-2 border-gray-200 overflow-hidden" style={{ width: (organization.settings as any).logoWidth ?? 400, height: (organization.settings as any).logoHeight ?? 100 }}>
-                <img
-                  src={logoPreview || (organization.logoUrl ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization.logoUrl}` : '')}
-                  alt="Organization Logo"
-                  className="w-full h-full object-cover"
-                  style={{
-                    objectPosition: `${(organization.settings as any).logoPositionX ?? 50}% ${(organization.settings as any).logoPositionY ?? 50}%`,
-                    transform: `scale(${((organization.settings as any).logoScale ?? 100) / 100})`,
-                    transformOrigin: 'center',
-                  }}
-                />
-                <button
-                  onClick={removeLogo}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                  aria-label="Remove logo"
-                >
-                  ×
-                </button>
-              </div>
-            ) : (
-              <div className="rounded-md border-2 border-dashed border-gray-300 bg-gray-100 flex items-center justify-center" style={{ width: (organization.settings as any).logoWidth ?? 400, height: (organization.settings as any).logoHeight ?? 100 }}>
-                <span className="text-gray-400 text-xs">No Logo</span>
-              </div>
-            )}
+            {/* Always show NIHA logo for demo/production */}
+            <div className="relative rounded-md border-2 border-gray-200 overflow-hidden" style={{ width: (organization.settings as any).logoWidth ?? 400, height: (organization.settings as any).logoHeight ?? 100 }}>
+              <img
+                src="/images/niha-logo.png"
+                alt="NIHA Technologies Logo"
+                className="w-full h-full object-contain"
+                style={{
+                  objectPosition: `${(organization.settings as any).logoPositionX ?? 50}% ${(organization.settings as any).logoPositionY ?? 50}%`,
+                  transform: `scale(${((organization.settings as any).logoScale ?? 100) / 100})`,
+                  transformOrigin: 'center',
+                }}
+                onError={(e) => {
+                  console.error('Admin settings logo failed to load');
+                }}
+                onLoad={() => console.log('Admin settings logo loaded successfully')}
+              />
+            </div>
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
