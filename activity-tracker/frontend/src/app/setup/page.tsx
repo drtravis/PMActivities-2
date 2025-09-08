@@ -57,8 +57,6 @@ export default function SetupPage() {
           onClick={() => window.location.href = 'https://blue-mushroom-07499561e.2.azurestaticapps.net/'}
           className="demo-back-button group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 hover:scale-110 hover:-translate-y-1"
         >
-          {/* Glowing Background Effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
 
           {/* Home Icon */}
           <div className="relative z-10 flex items-center gap-3">
@@ -72,8 +70,6 @@ export default function SetupPage() {
             <span className="text-sm font-bold tracking-wide">Home</span>
           </div>
 
-          {/* Ripple Effect */}
-          <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:animate-ping"></div>
         </button>
       </div>
 
@@ -83,8 +79,6 @@ export default function SetupPage() {
           onClick={() => router.push('/demo')}
           className="demo-back-button group relative flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-orange-500/50 transition-all duration-500 hover:scale-110 hover:-translate-y-1"
         >
-          {/* Glowing Background Effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 rounded-full blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
 
           {/* Arrow Icon */}
           <div className="relative z-10 flex items-center gap-3">
@@ -98,8 +92,6 @@ export default function SetupPage() {
             <span className="text-sm font-bold tracking-wide">Back to Demo</span>
           </div>
 
-          {/* Ripple Effect */}
-          <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 group-hover:animate-ping"></div>
         </button>
       </div>
 
