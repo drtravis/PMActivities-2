@@ -313,11 +313,11 @@ export function OrganizationSettings() {
         <h3 className="text-lg font-medium text-gray-900 mb-4">Organization Logo</h3>
         <div className="flex items-start space-x-6">
           <div className="flex-shrink-0">
-            {/* Always show NIHA logo for demo/production */}
+            {/* Show uploaded logo preview or default NIHA logo */}
             <div className="relative rounded-md border-2 border-gray-200 overflow-hidden" style={{ width: (organization.settings as any).logoWidth ?? 400, height: (organization.settings as any).logoHeight ?? 100 }}>
               <img
-                src="/images/niha-logo.png"
-                alt="NIHA Technologies Logo"
+                src={logoPreview || "/images/niha-logo.png"}
+                alt={logoPreview ? "Uploaded Logo Preview" : "NIHA Technologies Logo"}
                 className="w-full h-full object-contain"
                 style={{
                   objectPosition: `${(organization.settings as any).logoPositionX ?? 50}% ${(organization.settings as any).logoPositionY ?? 50}%`,
@@ -329,6 +329,15 @@ export function OrganizationSettings() {
                 }}
                 onLoad={() => console.log('Admin settings logo loaded successfully')}
               />
+              {logoPreview && (
+                <button
+                  onClick={removeLogo}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                  aria-label="Remove uploaded logo"
+                >
+                  ×
+                </button>
+              )}
             </div>
           </div>
           <div className="flex-1">
@@ -345,8 +354,10 @@ export function OrganizationSettings() {
               PNG, JPG, GIF up to 5MB. Recommended display area: 400x100px (wide).
             </p>
 
-            {/* Logo container size, position and zoom controls */}
-            {(logoPreview || organization.logoUrl) && (
+            {/* Logo container size, position and zoom controls - always show since we always have a logo */}
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Logo Display Settings</h4>
+              {(
               <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Width (px)</label>
@@ -410,7 +421,7 @@ export function OrganizationSettings() {
                   <div className="text-xs text-gray-500 mt-1">{(organization.settings as any).logoScale ?? 100}%</div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
