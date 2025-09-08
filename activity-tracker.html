@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Tracker - NIHA Technologies</title>
+    <meta name="description" content="NIHA Technologies - Activity Tracker">
+    <link rel="stylesheet" href="activity-tracker.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="main-header">
+                Activity Tracker
+            </h1>
+            <p class="subtitle">Streamline your project management and track activities with ease</p>
+        </header>
+
+        <!-- Main Options -->
+        <div class="main-options">
+            <div class="option-card existing-user">
+                <h2>Existing User?</h2>
+                <p>Sign in to access your dashboard and manage your activities</p>
+                <button class="option-button signin-button" onclick="handleSignIn()">
+                    Sign In
+                </button>
+            </div>
+
+            <div class="option-card new-organization">
+                <h2>New Organization?</h2>
+                <p>Set up a new organization and start managing your team's activities</p>
+                <button class="option-button getstarted-button" onclick="handleGetStarted()">
+                    Get Started
+                </button>
+            </div>
+
+            <div class="option-card demo-option">
+                <h2>Demo</h2>
+                <p>Explore the platform with sample data and see how activity tracking works</p>
+                <button class="option-button demo-button" onclick="handleDemo()">
+                    Try Demo
+                </button>
+            </div>
+        </div>
+
+        <!-- Key Features Section -->
+        <div class="features-section">
+            <h2 class="features-title">Key Features</h2>
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon">📄</div>
+                    <span class="feature-name">Activity Management</span>
+                    <span class="feature-desc">Create, assign, and track activities with detailed status updates</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">👥</div>
+                    <span class="feature-name">Team Collaboration</span>
+                    <span class="feature-desc">Role-based access control for admins, project managers, and team members</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <span class="feature-name">Progress Tracking</span>
+                    <span class="feature-desc">Real-time reporting and analytics to monitor project progress</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="lovable-badge">
+                <span>Edit with</span>
+                <strong>Lovable</strong>
+                <span class="close-btn">×</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="activity-tracker.js"></script>
+</body>
+</html>

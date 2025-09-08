@@ -1,0 +1,370 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #1a1b2e;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header Styles */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.main-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 0 10px 0;
+    font-weight: 700;
+    white-space: nowrap;
+    background: linear-gradient(45deg, #007acc, #00a8ff, #0099ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+}
+
+.logo-container {
+    margin-bottom: 20px;
+}
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.logo-text {
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+}
+
+.logo-subtext {
+    font-size: 12px;
+    font-weight: 600;
+    color: #00d4ff;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
+}
+
+.company-name {
+    font-size: 28px;
+    font-weight: 300;
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #8892b0;
+    font-weight: 400;
+}
+
+/* Instructions */
+.instructions {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.instructions p {
+    color: #8892b0;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+/* Organizational Chart */
+.org-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    padding: 40px 0;
+}
+
+.org-level {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin: 30px 0;
+    position: relative;
+}
+
+.level-1 {
+    margin-bottom: 50px;
+}
+
+.level-2 {
+    margin: 50px 0;
+}
+
+.level-3 {
+    margin-top: 50px;
+}
+
+
+/* Role Cards */
+.role-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 15px;
+    padding: 25px;
+    min-width: 220px;
+    max-width: 250px;
+    position: relative;
+    z-index: 2;
+}
+
+.role-card:hover {
+    border-color: #00d4ff;
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
+    transform: translateY(-5px);
+}
+
+.role-card:hover .role-description {
+    transform: scale(1.15);
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.profile-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #00d4ff;
+    position: relative;
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Role Buttons */
+.role-button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 160px;
+}
+
+.admin-button {
+    background: #e91e63;
+    color: white;
+}
+
+.admin-button:hover {
+    background: #c2185b;
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(233, 30, 99, 0.6);
+    border: 2px solid rgba(233, 30, 99, 0.8);
+}
+
+.manager-button {
+    background: #ff9800;
+    color: white;
+}
+
+.manager-button:hover {
+    background: #f57c00;
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
+    border: 2px solid rgba(255, 152, 0, 0.8);
+}
+
+.project-manager-button {
+    background: #00bcd4;
+    color: white;
+}
+
+.project-manager-button:hover {
+    background: #0097a7;
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(0, 188, 212, 0.6);
+    border: 2px solid rgba(0, 188, 212, 0.8);
+}
+
+.member-button {
+    background: #2196f3;
+    color: white;
+}
+
+.member-button:hover {
+    background: #1976d2;
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.6);
+    border: 2px solid rgba(33, 150, 243, 0.8);
+}
+
+/* Role Descriptions */
+.role-description {
+    text-align: center;
+    color: #8892b0;
+    font-size: 13px;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+}
+
+.role-description p {
+    margin: 2px 0;
+}
+
+/* Members Row - Remove since we're using horizontal layout */
+
+/* Hierarchy Note */
+.hierarchy-note {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    max-width: 500px;
+}
+
+.hierarchy-note p {
+    color: #8892b0;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.lovable-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lovable-badge strong {
+    color: #00d4ff;
+}
+
+.close-btn {
+    cursor: pointer;
+    margin-left: 4px;
+    opacity: 0.7;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .org-level {
+        gap: 40px;
+    }
+    
+    .role-card {
+        min-width: 200px;
+        max-width: 220px;
+    }
+    
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 15px;
+    }
+    
+    .main-header {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .org-chart {
+        padding: 20px 0;
+    }
+    
+    .org-level {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .role-card {
+        min-width: 250px;
+        max-width: 280px;
+    }
+    
+    
+    .profile-image {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .role-button {
+        min-width: 140px;
+        font-size: 13px;
+    }
+    
+    .footer {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 40px;
+        text-align: center;
+    }
+}

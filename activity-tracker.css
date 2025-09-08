@@ -1,0 +1,266 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #1a1b2e;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header Styles */
+.header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.main-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 0 20px 0;
+    font-weight: 700;
+    white-space: nowrap;
+    background: linear-gradient(45deg, #007acc, #00a8ff, #0099ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #8892b0;
+    font-weight: 400;
+    margin-top: 10px;
+}
+
+/* Main Options */
+.main-options {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 80px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.option-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+    border-radius: 15px;
+    padding: 25px 20px;
+    text-align: center;
+    min-width: 220px;
+    max-width: 260px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.option-card:hover {
+    border-color: #00d4ff;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+    transform: translateY(-5px);
+}
+
+.option-card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #ffffff;
+}
+
+.option-card p {
+    color: #8892b0;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.option-button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 150px;
+}
+
+.signin-button {
+    background: #2196f3;
+    color: white;
+}
+
+.signin-button:hover {
+    background: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.6);
+}
+
+.getstarted-button {
+    background: #4caf50;
+    color: white;
+}
+
+.getstarted-button:hover {
+    background: #388e3c;
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+}
+
+.demo-button {
+    background: #ff9800;
+    color: white;
+}
+
+.demo-button:hover {
+    background: #f57c00;
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
+}
+
+/* Features Section */
+.features-section {
+    width: 100%;
+    text-align: center;
+}
+
+.features-title {
+    font-size: 1.4rem;
+    color: #ffffff;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.features-list {
+    display: flex;
+    gap: 60px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.feature-item {
+    text-align: center;
+    flex: 1;
+    min-width: 200px;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.feature-name {
+    display: block;
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.feature-desc {
+    display: block;
+    font-size: 12px;
+    color: #8892b0;
+    line-height: 1.4;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.lovable-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lovable-badge strong {
+    color: #00d4ff;
+}
+
+.close-btn {
+    cursor: pointer;
+    margin-left: 4px;
+    opacity: 0.7;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 15px;
+    }
+    
+    .main-header {
+        font-size: 2rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .main-options {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .option-card {
+        min-width: 280px;
+        max-width: 320px;
+    }
+    
+    .features-list {
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .feature-item {
+        min-width: 250px;
+    }
+    
+    .footer {
+        position: relative;
+        bottom: auto;
+        right: auto;
+        margin-top: 40px;
+        text-align: center;
+    }
+}

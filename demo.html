@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIHA Technologies - Organizational Hierarchy v2</title>
+    <meta name="description" content="Niha Technologies - Organizational Hierarchy">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="main-header">
+                <img src="images/niha-logo.png" alt="NIHA Technologies Logo" style="width: 165px; height: 55px; vertical-align: middle; margin-right: 20px;" />
+                NIHA TECHNOLOGIES
+            </h1>
+            <p class="subtitle">Organizational Hierarchy</p>
+        </header>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <p>Click on any role to navigate to the respective dashboard</p>
+        </div>
+
+        <!-- Organizational Chart -->
+        <div class="org-chart">
+            <!-- Level 1: Admin -->
+            <div class="org-level level-1">
+                <div class="role-card admin-card">
+                    <div class="profile-container">
+                        <div class="profile-image">
+                            <img src="images/admin-profile.jpg" alt="Admin Profile" />
+                        </div>
+                        <button class="role-button admin-button" onclick="navigateToRole('admin')">
+                            ADMIN
+                        </button>
+                    </div>
+                    <div class="role-description">
+                        <p>Setup Organization, Projects, Users</p>
+                        <p>Status Config</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Level 2: Managers -->
+            <div class="org-level level-2">
+                <div class="role-card manager-card">
+                    <div class="profile-container">
+                        <div class="profile-image">
+                            <img src="images/program-manager-profile.jpg" alt="Program Manager Profile" />
+                        </div>
+                        <button class="role-button manager-button" onclick="navigateToRole('program-manager')">
+                            PROGRAM MANAGER
+                        </button>
+                    </div>
+                    <div class="role-description">
+                        <p>Visibility to Metrics</p>
+                        <p>Reports</p>
+                        <p>Member Activities</p>
+                    </div>
+                </div>
+
+                <div class="role-card project-manager-card">
+                    <div class="profile-container">
+                        <div class="profile-image">
+                            <img src="images/project-manager-profile.jpg" alt="Project Manager Profile" />
+                        </div>
+                        <button class="role-button project-manager-button" onclick="navigateToRole('project-manager')">
+                            PROJECT MANAGER
+                        </button>
+                    </div>
+                    <div class="role-description">
+                        <p>Project Planning</p>
+                        <p>Task Assignment</p>
+                        <p>Progress Tracking</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Level 3: Project Members -->
+            <div class="org-level level-3">
+                <div class="role-card member-card">
+                    <div class="profile-container">
+                        <div class="profile-image">
+                            <img src="images/project-member-1-profile.jpg" alt="Project Member 1 Profile" />
+                        </div>
+                        <button class="role-button member-button" onclick="navigateToRole('project-member-1')">
+                            PROJECT MEMBER 1
+                        </button>
+                    </div>
+                    <div class="role-description">
+                        <p>Task Progress</p>
+                        <p>Status Updates</p>
+                        <p>Project Documents</p>
+                    </div>
+                </div>
+
+                <div class="role-card member-card">
+                    <div class="profile-container">
+                        <div class="profile-image">
+                            <img src="images/project-member-2-profile.jpg" alt="Project Member 2 Profile" />
+                        </div>
+                        <button class="role-button member-button" onclick="navigateToRole('project-member-2')">
+                            PROJECT MEMBER 2
+                        </button>
+                    </div>
+                    <div class="role-description">
+                        <p>Task Progress</p>
+                        <p>Status Updates</p>
+                        <p>Project Documents</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="hierarchy-note">
+            <p>Each role has different access levels and permissions within the organization</p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="lovable-badge">
+                <span>Edit with</span>
+                <strong>Lovable</strong>
+                <span class="close-btn">×</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

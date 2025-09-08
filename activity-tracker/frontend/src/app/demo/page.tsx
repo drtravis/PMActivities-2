@@ -224,14 +224,21 @@ export default function DemoPage() {
         {/* Header */}
         <header className="text-center mb-12">
           <div className="flex items-center justify-center mb-4 flex-wrap">
-            <div className="w-40 h-14 relative mr-5 mb-2 md:mb-0">
-              <Image
-                src="/images/niha logo.png"
+            {/* Logo with fallback */}
+            <div className="w-40 h-14 relative mr-5 mb-2 md:mb-0 flex items-center justify-center">
+              <img
+                src="/images/niha-logo.png"
                 alt="NIHA Technologies Logo"
-                fill
-                className="object-contain"
-                priority
-                onError={() => console.log('Logo image not found')}
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => {
+                  console.error('Logo image failed to load');
+                  // Hide the logo container if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  if (target.parentElement) {
+                    target.parentElement.style.display = 'none';
+                  }
+                }}
+                onLoad={() => console.log('Logo loaded successfully')}
               />
             </div>
             <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
