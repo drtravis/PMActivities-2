@@ -87,9 +87,13 @@ export function GlobalHeader({ projectName }: GlobalHeaderProps) {
                 }}
               >
                 <img
-                  src={organization?.logoUrl
-                    ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization.logoUrl}`
-                    : '/images/niha-logo.png'}
+                  src={
+                    (organization?.logoUrl?.startsWith('http') || organization?.logoUrl?.startsWith('data:'))
+                      ? (organization as any)?.logoUrl!
+                      : (organization?.logoUrl
+                          ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${(organization as any)?.logoUrl}`
+                          : '/images/niha-logo.png')
+                  }
                   alt={organization?.name || 'Organization'}
                   className="w-full h-full object-contain"
                   style={{

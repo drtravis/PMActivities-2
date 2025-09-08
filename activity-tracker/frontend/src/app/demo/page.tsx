@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { authAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { toast } from 'react-hot-toast';
+import { useOrganizationStore } from '@/lib/organizationStore';
 
 interface UserRole {
   id: string;
@@ -85,8 +86,8 @@ interface RoleCardProps {
 
 function RoleCard({ user, onLogin, loading }: RoleCardProps) {
   return (
-    <div className="group bg-slate-800/30 border-2 border-cyan-500/30 rounded-xl p-6 min-w-[220px] max-w-[250px] 
-                    transition-all duration-300 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-400/20 
+    <div className="group bg-slate-800/30 border-2 border-cyan-500/30 rounded-xl p-6 min-w-[220px] max-w-[250px]
+                    transition-all duration-300 hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-400/20
                     hover:-translate-y-2 relative z-10">
       <div className="flex flex-col items-center gap-4">
         {/* Profile Image */}
@@ -105,16 +106,16 @@ function RoleCard({ user, onLogin, loading }: RoleCardProps) {
         <button
           onClick={() => onLogin(user)}
           disabled={loading}
-          className={`${user.buttonColor} ${user.hoverColor} text-white font-semibold py-3 px-6 
-                     rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg 
-                     disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] text-sm 
+          className={`${user.buttonColor} ${user.hoverColor} text-white font-semibold py-3 px-6
+                     rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg
+                     disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px] text-sm
                      uppercase tracking-wide`}
         >
           {loading ? 'Logging in...' : user.title}
         </button>
 
         {/* Description */}
-        <div className="text-center text-slate-400 text-xs leading-relaxed 
+        <div className="text-center text-slate-400 text-xs leading-relaxed
                         transition-all duration-300 group-hover:text-white group-hover:scale-110 group-hover:font-medium">
           {user.description.map((desc, index) => (
             <p key={index} className="mb-1">{desc}</p>
@@ -129,6 +130,14 @@ export default function DemoPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
   const { login } = useAuthStore();
+
+  const { organization } = useOrganizationStore();
+
+  const headerLogoSrc = (organization?.logoUrl?.startsWith('http') || organization?.logoUrl?.startsWith('data:'))
+    ? (organization?.logoUrl as string)
+    : (organization?.logoUrl
+        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization.logoUrl}`
+        : '/images/niha-logo.png');
 
   const handleQuickLogin = async (user: UserRole) => {
     setLoading(user.id);
@@ -227,18 +236,14 @@ export default function DemoPage() {
             {/* Logo with fallback */}
             <div className="w-40 h-14 relative mr-5 mb-2 md:mb-0 flex items-center justify-center">
               <img
-                src="/images/niha-logo.png"
-                alt="NIHA Technologies Logo"
+                src={headerLogoSrc}
+                alt={organization?.name || 'Organization Logo'}
                 className="max-w-full max-h-full object-contain"
                 onError={(e) => {
                   console.error('Logo image failed to load');
-                  // Hide the logo container if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  if (target.parentElement) {
-                    target.parentElement.style.display = 'none';
-                  }
+                  // Fallback to static logo
+                  (e.target as HTMLImageElement).src = '/images/niha-logo.png';
                 }}
-                onLoad={() => console.log('Logo loaded successfully')}
               />
             </div>
             <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -253,38 +258,38 @@ export default function DemoPage() {
         <div className="space-y-16">
           {/* Level 1: Admin */}
           <div className="flex justify-center">
-            <RoleCard 
-              user={userRoles[0]} 
-              onLogin={handleQuickLogin} 
-              loading={loading === userRoles[0].id} 
+            <RoleCard
+              user={userRoles[0]}
+              onLogin={handleQuickLogin}
+              loading={loading === userRoles[0].id}
             />
           </div>
 
           {/* Level 2: Managers */}
           <div className="flex justify-center gap-8 md:gap-16 flex-wrap">
-            <RoleCard 
-              user={userRoles[1]} 
-              onLogin={handleQuickLogin} 
-              loading={loading === userRoles[1].id} 
+            <RoleCard
+              user={userRoles[1]}
+              onLogin={handleQuickLogin}
+              loading={loading === userRoles[1].id}
             />
-            <RoleCard 
-              user={userRoles[2]} 
-              onLogin={handleQuickLogin} 
-              loading={loading === userRoles[2].id} 
+            <RoleCard
+              user={userRoles[2]}
+              onLogin={handleQuickLogin}
+              loading={loading === userRoles[2].id}
             />
           </div>
 
           {/* Level 3: Project Members */}
           <div className="flex justify-center gap-8 md:gap-16 flex-wrap">
-            <RoleCard 
-              user={userRoles[3]} 
-              onLogin={handleQuickLogin} 
-              loading={loading === userRoles[3].id} 
+            <RoleCard
+              user={userRoles[3]}
+              onLogin={handleQuickLogin}
+              loading={loading === userRoles[3].id}
             />
-            <RoleCard 
-              user={userRoles[4]} 
-              onLogin={handleQuickLogin} 
-              loading={loading === userRoles[4].id} 
+            <RoleCard
+              user={userRoles[4]}
+              onLogin={handleQuickLogin}
+              loading={loading === userRoles[4].id}
             />
           </div>
         </div>

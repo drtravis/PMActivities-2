@@ -315,7 +315,14 @@ export function OrganizationSettings() {
             {(logoPreview || organization.logoUrl) ? (
               <div className="relative rounded-md border-2 border-gray-200 overflow-hidden" style={{ width: organization?.settings?.logoWidth ?? 400, height: organization?.settings?.logoHeight ?? 100 }}>
                 <img
-                  src={logoPreview || (organization?.logoUrl ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization.logoUrl}` : '/images/niha-logo.png')}
+                  src={
+                    logoPreview
+                      || (organization?.logoUrl?.startsWith('http') || organization?.logoUrl?.startsWith('data:')
+                        ? organization?.logoUrl
+                        : (organization?.logoUrl
+                            ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${organization.logoUrl}`
+                            : '/images/niha-logo.png'))
+                  }
                   alt="Organization Logo"
                   className="w-full h-full object-contain"
                   style={{
